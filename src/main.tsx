@@ -8,7 +8,7 @@ import { createBrowserRouter } from "react-router";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />, //default Vite template app for now
+    element: <App />,
   },
 ]);
 
