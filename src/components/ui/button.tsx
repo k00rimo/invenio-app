@@ -10,7 +10,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary font-button-normal text-white hover:bg-primary-dark",
+        default:
+          "bg-primary font-button-normal text-white hover:bg-primary-dark",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -20,13 +21,14 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        navbar: "bg-transparent text-white font-button-normal hover:underline hover:underline-offset-2 hover:decoration-2",
+        navbar:
+          "bg-transparent text-white font-button-normal hover:underline hover:underline-offset-2 hover:decoration-2",
       },
       size: {
         default: "h-16 px-8 py-6 has-[>svg]:px-3",
         md: "h-11 px-4 py-[0.625rem] has-[>svg]:px-3",
         icon: "size-9",
-        navbar: "h-10 px-[0.625rem] py-[0.625rem]",
+        navbar: "h-10 px-[1rem] py-[0.625rem]",
       },
     },
     defaultVariants: {
@@ -55,7 +57,7 @@ function Button({
   ...props
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button";
-  
+
   return (
     <Comp
       data-slot="button"
