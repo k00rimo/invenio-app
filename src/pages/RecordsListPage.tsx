@@ -1,6 +1,7 @@
 import RecordsListFilter from "@/components/forms/filters/RecordsListFilter";
 import RecordCard from "@/components/layout/records-list-page/RecordCard";
 import RecordsPagination from "@/components/layout/records-list-page/RecordsPagination";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -66,6 +67,7 @@ const RecordsListPage = () => {
           className="justify-end"
         />
       </div>
+      <ScrollToTop />
     </div>
   );
 }
