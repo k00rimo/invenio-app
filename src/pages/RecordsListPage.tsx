@@ -10,8 +10,8 @@ const RecordsListPage = () => {
       {/* filters */}
       <RecordsListFilter />
 
-      <div className="flex flex-col gap-8">
-        <SearchInputDeposition />
+      <div className="space-y-2.5">
+        <SearchInputDeposition className="mb-8" />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <p>Results</p>  
