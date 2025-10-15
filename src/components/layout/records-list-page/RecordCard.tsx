@@ -47,17 +47,17 @@ const RecordCard = ({
         </Link>
         <p className="font-subheadline text-gray-dark">{`Date of acquisition ${formattedDate}`}</p>
       </div>
-      <div className="flex gap-4">
-        <img
-          src={euFlag}
-          alt="Flag of the European Union"
-          className="h-[130px] w-auto"
-        />
+      <div className="w-full flex justify-between gap-4">
         <div className="space-y-1">
           <LabeledList label="Authors" list={authors} orientation="horizontal" />
           <LabeledList label="Tags" list={tags} orientation="horizontal" />
           <CollapsibleBlock label="Affiliation" text={affiliation} className="max-w-2/3" />
         </div>
+        <img
+          src={euFlag}
+          alt="Flag of the European Union"
+          className="h-[130px] w-auto"
+        />
       </div>
     </div>
   )
