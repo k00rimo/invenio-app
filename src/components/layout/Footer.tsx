@@ -9,7 +9,7 @@ type FooterProps = {
 const Footer = ({ className }: FooterProps) => {
   
   return (
-    <footer className={cn("bg-primary-light flex items-center gap-32 px-12 py-5", className)}>
+    <footer className={cn("bg-primary-light flex items-center gap-32 px-12 py-5 border-t border-gray-dark", className)}>
       <div className="flex items-center gap-8">
         <img
           src={euFlag}
