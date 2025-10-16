@@ -17,6 +17,8 @@ const badgeVariants = cva(
           "border-transparent bg-blue-light [a&]:hover:bg-blue-light/90",
         closed:
           "border-transparent bg-red-light [a&]:hover:bg-red-light/90",
+        link:
+          "border-transparent px-0 py-0 text-primary-dark hover:underline",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:

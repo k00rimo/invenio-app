@@ -33,9 +33,10 @@ const CollapsibleBlock = ({ label, text, className }: CollapsibleBlockProps) => 
         
         <Badge
           onClick={toggleIsExpanded}
-          className="mt-1 self-end text-sm bg-gray-light font-semibold hover:underline"
+          variant={"link"}
+          className="self-end"
         >
-          {isExpanded ? "Show less" : "Show more"}
+          {isExpanded ? "Less text" : "More text"}
         </Badge>
       </div>
     </div>

@@ -2,7 +2,6 @@ import HeroSection from "@/components/layout/homepage/HeroSection";
 import ExploreSection from "@/components/layout/homepage/ExploreSection";
 import AboutSection from "@/components/layout/homepage/AboutSection";
 import CommunitySection from "@/components/layout/homepage/CommunitySection";
-import StartSection from "@/components/layout/homepage/StartSection";
 
 const HomePage = () => {    
 
@@ -12,7 +11,6 @@ const HomePage = () => {
       <ExploreSection />
       <AboutSection />
       <CommunitySection />
-      <StartSection />      
     </div>
   );
 }
