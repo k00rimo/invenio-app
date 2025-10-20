@@ -6,14 +6,21 @@ import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const RecordsListPage = () => {    
-
   return (
     <div className="min-h-svh flex items-start justify-center gap-8 pt-10 mb-8 bg-white">
       {/* filters */}
       <RecordsListFilter />
 
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 relative">
+
+        <div className="absolute left-full ml-16 w-10 h-full pointer-events-none">
+          <div className="sticky top-[calc(100vh-6rem)] pointer-events-auto">
+            <ScrollToTop />
+          </div>
+        </div>
+
         <SearchInputDeposition />
+
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -50,6 +57,7 @@ const RecordsListPage = () => {
               </div>
             </div>
           </div>
+
           <div className="space-y-5 mb-8">
             <RecordCard recordLink={"/records/hello-world"} title={"Title of the record"} access={"open"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
             <RecordCard recordLink={"/records/hello-world"} title={"Title of the record"} access={"restricted"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
@@ -60,6 +68,7 @@ const RecordsListPage = () => {
             <RecordCard recordLink={"/records/hello-world"} title={"Title of the record"} access={"closed"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
           </div>
         </div>
+
         <RecordsPagination 
           activeIndex={1}
           recordsCount={80}
@@ -67,7 +76,6 @@ const RecordsListPage = () => {
           className="justify-end"
         />
       </div>
-      <ScrollToTop />
     </div>
   );
 }
