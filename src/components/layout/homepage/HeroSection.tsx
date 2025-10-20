@@ -12,7 +12,7 @@ const HeroSection = ({className}: HeroSectionProps) => {
     <section
       className={cn(
         "relative flex items-center justify-center p-4 sm:p-6 md:p-8",
-        "min-h-[780px] w-full overflow-hidden",
+        "md:min-h-[680px] 2xl:min-h-[780px] w-full overflow-hidden",
         "bg-gradient-main bg-cover bg-center",
         className
       )}
