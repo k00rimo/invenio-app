@@ -10,40 +10,40 @@ import {
 } from "@/components/ui/pagination"
 
 type RecordsPaginationProps = {
-  activeIndex: number // (1 = first page)
+  page: number // (1 = first page)
   recordsCount: number
-  recrodsPerPage: number
+  recordsPerPage: number
   onPageChange?: (page: number) => void
   className?: string
 }
 
 const RecordsPagination = ({
-  activeIndex,
+  page,
   recordsCount,
-  recrodsPerPage,
+  recordsPerPage,
   onPageChange,
   className,
 }: RecordsPaginationProps) => {
-  const totalPages = Math.max(1, Math.ceil(recordsCount / recrodsPerPage))
+  const totalPages = Math.max(1, Math.ceil(recordsCount / recordsPerPage))
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages && page !== activeIndex) {
-      onPageChange?.(page)
+  const handlePageChange = (currPage: number) => {
+    if (currPage >= 1 && currPage <= totalPages && currPage !== page) {
+      onPageChange?.(currPage)
     }
   }
 
-  const renderPageLink = (page: number) => (
-    <PaginationItem key={page}>
+  const renderPageLink = (pageIndex: number) => (
+    <PaginationItem key={pageIndex}>
       <PaginationLink
         href="#"
-        isActive={page === activeIndex}
-        className={cn(page === activeIndex && "bg-primary-dark font-input p-1 rounded-md")}
+        isActive={pageIndex === page}
+        className={cn(pageIndex === page && "bg-primary-dark font-input p-1 rounded-md")}
         onClick={(e) => {
           e.preventDefault()
-          handlePageChange(page)
+          handlePageChange(pageIndex)
         }}
       >
-        {page}
+        {pageIndex}
       </PaginationLink>
     </PaginationItem>
   )
@@ -54,7 +54,7 @@ const RecordsPagination = ({
     }
 
     const pages = [1, 2, 3]
-    const shouldShowEllipsis = activeIndex > 3 || totalPages > 4
+    const shouldShowEllipsis = page > 3 || totalPages > 4
 
     return [
       ...pages.map(renderPageLink),
@@ -69,10 +69,10 @@ const RecordsPagination = ({
         <PaginationItem>
           <PaginationPrevious
             href="#"
-            disabled={activeIndex === 1}
+            disabled={page === 1}
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(activeIndex - 1)
+              handlePageChange(page - 1)
             }}
           />
         </PaginationItem>
@@ -82,10 +82,10 @@ const RecordsPagination = ({
         <PaginationItem>
           <PaginationNext
             href="#"
-            disabled={activeIndex === totalPages}
+            disabled={page === totalPages}
             onClick={(e) => {
               e.preventDefault()
-              handlePageChange(activeIndex + 1)
+              handlePageChange(page + 1)
             }}
           />
         </PaginationItem>
