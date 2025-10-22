@@ -26,6 +26,34 @@ const routes: RouteObject[] = [
       {
         path: "/records/:id",
         Component: RecordPage,
+        children: [
+          {
+            path: "overview",
+            lazy: async () => {
+              const { default: RecordOverviewPage } = await import(
+                "@/pages/RecordOverviewPage"
+              );
+              return { Component: RecordOverviewPage };
+            },
+          },
+          {
+            path: "analyses",
+            element: <div>Analyses Page - TODO</div>,
+          },
+          {
+            path: "trajectories",
+            lazy: async () => {
+              const { default: RecordTrajectoriesPage } = await import(
+                "@/pages/RecordTrajectoriesPage"
+              );
+              return { Component: RecordTrajectoriesPage };
+            },
+          },
+          {
+            path: "downloads",
+            element: <div>Downloads Page - TODO</div>,
+          },
+        ],
       },
     ],
   },

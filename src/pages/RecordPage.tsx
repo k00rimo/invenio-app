@@ -1,10 +1,12 @@
-import React from "react";
-import { useParams } from "react-router";
+import RecordLayout from "@/components/layout/recordDetail/RecordLayout";
+import { Outlet } from "react-router";
 
 const RecordPage = () => {
-  const { id } = useParams();
-
-  return <div>{id}</div>;
+  return (
+    <RecordLayout>
+      <Outlet />
+    </RecordLayout>
+  );
 };
 
 export default RecordPage;

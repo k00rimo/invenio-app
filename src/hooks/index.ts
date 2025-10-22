@@ -1,18 +1,18 @@
-import { getRecordById, searchRecords } from "@/api/records";
-import type { SearchRecordsParams } from "@/types/types";
+import { getRecordById, getProjects } from "@/api/projects";
+import type { ProjectsQueryParams } from "@/types/mdpositTypes";
 import { useQuery } from "@tanstack/react-query";
 
-export const useRecords = (params?: SearchRecordsParams) => {
+export const useRecords = (params?: ProjectsQueryParams) => {
   return useQuery({
     queryKey: ["records", params],
-    queryFn: () => searchRecords(params ?? {}),
+    queryFn: () => getProjects(params ?? {}),
   });
 };
 
-export const useRecord = (id: string) => {
+export const useRecord = (id?: string) => {
   return useQuery({
     queryKey: ["record", id],
-    queryFn: () => getRecordById(id),
+    queryFn: () => getRecordById(id!),
     enabled: !!id,
   });
 };

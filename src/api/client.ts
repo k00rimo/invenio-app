@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from "axios";
 
-const API_URL = "https://inveniordm.web.cern.ch/api";
+const API_URL = "https://mdposit.mddbr.eu/api/rest/v1";
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_URL,
