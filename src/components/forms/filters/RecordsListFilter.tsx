@@ -16,7 +16,7 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
   }
 
   return (
-    <div className={cn("space-y-5 p-5 bg-primary-light rounded-xl min-w-80", className)}>
+    <div className={cn("space-y-5 p-5 bg-primary-light rounded-sm min-w-80", className)}>
       <div className="flex items-center justify-between">
         <h3 className="font-heading3">Filters</h3>
         <Button
