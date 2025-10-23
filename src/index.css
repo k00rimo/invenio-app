@@ -53,10 +53,10 @@
   --color-red-light: var(--red-light);
 
   /* Custom font sizes for buttons */
-  --font-size-button-normal: 1.25rem;
-  --font-size-button-sm: 14px;
+  --font-size-button-normal: 1rem;
+  --font-size-button-sm: 0.875rem;
   --font-size-heading: 2.25rem;
-  --font-size-heading2: 2rem;
+  --font-size-heading2: 1.875rem;
   --font-size-heading3: 1.5rem;
   --font-size-subheadline: 1rem;
   --font-size-body-small: 0.875rem;
@@ -73,15 +73,15 @@
   --line-height-narrow-text: 1rem;
   --line-height-input: 1.25rem;
 
-  --font-weight-button-normal: 600;
-  --font-weight-button-sm: 600;
+  --font-weight-button-normal: 500;
+  --font-weight-button-sm: 500;
   --font-weight-heading: 600;
   --font-weight-heading2: 500;
   --font-weight-heading3: 500;
   --font-weight-subheadline: 500;
   --font-weight-body-small: 400;
   --font-weight-narrow-text: 400;
-  --font-weight-input: 500;
+  --font-weight-input: 400;
 }
 
 :root {
