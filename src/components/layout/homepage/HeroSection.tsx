@@ -19,14 +19,14 @@ const HeroSection = ({className}: HeroSectionProps) => {
     >
       <MoleculeIcon
         className={cn(
-          "absolute -left-0 -top-0 z-0 text-[#A8D2FD]",  // TODO: change the color to a variable
+          "absolute -left-0 -top-0 z-0 text-secondary-medium",  // TODO: change the color to a variable
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"
       />
       <MoleculeIcon
         className={cn(
-          "absolute -bottom-0 -right-0 z-0 rotate-180 text-white",
+          "absolute -bottom-0 -right-0 z-0 rotate-180 text-secondary-light",
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"

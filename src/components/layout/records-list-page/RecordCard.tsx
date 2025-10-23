@@ -36,7 +36,7 @@ const RecordCard = ({
   }).format(new Date(dateOfAcquisition));
 
   return (
-    <div className="w-full max-w-4xl p-6 shadow-dropdown rounded-sm space-y-5">
+    <div className="w-full max-w-4xl p-6 shadow-dropdown rounded-sm space-y-4">
       <div className="space-y-1">
         <Link to={recordLink} className="flex items-center justify-between">
           <h3 className="font-heading3">{title}</h3>

@@ -21,6 +21,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-dark: var(--secondary-dark);
+  --color-secondary-medium: var(--secondary-medium);
   --color-secondary-light: var(--secondary-light);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -100,6 +101,7 @@
   --primary-foreground: oklch(0.985 0 0);
   --secondary: #ffcc48;
   --secondary-dark: #dda619;
+  --secondary-medium: #FFCC48;
   --secondary-light: #ffe7aa;
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);

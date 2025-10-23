@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils"
 import euFlag from '@/assets/images/european-union.png';
-import { Link } from "react-router";
 
 type FooterProps = {
   className?: string
@@ -14,19 +13,9 @@ const Footer = ({ className }: FooterProps) => {
         <img
           src={euFlag}
           alt="Flag of the European Union"
-          className="h-[100px] w-auto"
+          className="h-[50px] w-auto"
         />
-        <p className="text-[#003399] max-w-40">Co-funded by the European Union</p>
-      </div>
-      
-      <div className="flex flex-col gap-2.5">
-        <Link to={"/contacts"}>
-          Contacts
-        </Link>
-
-        <Link to={"/documentation"}>
-          Documentation
-        </Link>
+        <p className="text-[#003399] max-w-40 font-body-small">Co-funded by the European Union</p>
       </div>
     </footer>
   )

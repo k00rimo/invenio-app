@@ -50,7 +50,7 @@ const SearchInputDeposition = ({ className, query }: SearchInputDepositionProps)
   }
 
   return (
-    <div className={cn("flex gap-5 items-center", className)}>
+    <div className={cn("flex gap-2 items-center", className)}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-1">
         <div className="flex w-full">
           <Input 

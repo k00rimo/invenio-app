@@ -9,7 +9,7 @@ const PlaygroundPage = () => {
     <div className="flex h-full flex-col items-center justify-center gap-4 px-2 rounded-lg">
       <span className="h-10 ">...</span>
       <span className="text-2xl font-bold">{count}</span>
-      <Button onClick={() => setCount((count) => count + 1)}>Click me</Button>
+      <Button onClick={() => setCount((count) => count + 1)}>Click me primary</Button>
       <Button onClick={() => setCount((count) => count + 1)} size={"md"}>
         Click me
       </Button>
@@ -25,7 +25,14 @@ const PlaygroundPage = () => {
         size={"md"}
         rightIcon={<TvIcon />}
       >
-        Click me
+        Click medium
+      </Button>
+      <Button
+        onClick={() => setCount((count) => count + 1)}
+        size={"sm"}
+        rightIcon={<TvIcon />}
+      >
+        small
       </Button>
       <div className="bg-primary">
         <Button
@@ -39,6 +46,21 @@ const PlaygroundPage = () => {
       <Button
         onClick={() => setCount((count) => count + 1)}
         variant={"secondary"}
+      >
+        Click me
+      </Button>
+      <Button
+        onClick={() => setCount((count) => count + 1)}
+        variant={"outline"}
+        leftIcon={<TvIcon />}
+      >
+        Click me
+      </Button>
+      <Button
+        onClick={() => setCount((count) => count + 1)}
+        variant={"outline"}
+        leftIcon={<TvIcon />}
+        className="px-4 rounded-sm"
       >
         Click me
       </Button>

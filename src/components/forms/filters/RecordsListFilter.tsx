@@ -16,7 +16,7 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
   }
 
   return (
-    <div className={cn("space-y-5 p-5 bg-primary-light rounded-sm min-w-80", className)}>
+    <div className={cn("space-y-4 p-4 bg-primary-light rounded-sm min-w-80", className)}>
       <div className="flex items-center justify-between">
         <h3 className="font-heading3">Filters</h3>
         <Button
@@ -32,7 +32,7 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
         </Button>      
       </div>
       <Separator className="bg-foreground" />
-      <div className="space-y-2.5">
+      <div className="space-y-2">
         <div className="flex items-center justify-between font-input">
           <label>
             View all versions

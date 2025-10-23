@@ -65,7 +65,7 @@ const RecordsListPage = () => {
         
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-baseline gap-2.5">
               <p>Results</p>  
               <span className="font-button-sm">123</span>
             </div>

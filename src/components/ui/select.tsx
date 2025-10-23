@@ -12,7 +12,7 @@ const SelectGroup = SelectPrimitive.Group
 const SelectValue = SelectPrimitive.Value
 
 const selectTriggerVariants = cva(
-  "flex h-10 w-full items-center justify-between border border-primary pl-4 pr-2.5 py-1.5 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+  "flex h-10 w-full items-center justify-between border border-primary pl-3 pr-2 py-1 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
   {
     variants: {
       variant: {
@@ -20,7 +20,7 @@ const selectTriggerVariants = cva(
         dropdown: "bg-primary-light p-2.5 border-none justify-normal gap-2.5 hover:bg-accent hover:text-accent-foreground",
       },
       size: {
-        default: "h-10",
+        default: "h-auto",
         sm: "h-9 rounded-sm px-3",
         lg: "h-11 rounded-sm px-8",
       },
