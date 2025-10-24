@@ -1,5 +1,4 @@
 import type { ProjectMD } from "@/types/mdpositTypes";
-import React from "react";
 import {
   Card,
   CardContent,

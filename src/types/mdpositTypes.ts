@@ -276,14 +276,20 @@ export interface InteractionData {
 // ============================================================================
 
 export type AnalysisName =
+  | "rmsd"
+  | "clusters"
   | "dist-perres"
+  | "dist-perres-mean" // just another specifier??
+  | "dist-perres-stdv" // just another specifier??
   | "energies"
   | "fluctuation"
   | "hbonds"
+  | "interactions"
   | "pca"
   | "pockets"
   | "rgyr"
   | "rmsd-pairwise"
+  | "rmsd-pairwise-interface"
   | "rmsd-perres"
   | "rmsds"
   | "sasa"
@@ -295,6 +301,14 @@ export interface StatisticalData {
   min: number;
   max: number;
   data: number[];
+}
+
+// RMSD Analysis
+export interface RMSDAnalysis {
+  step: number;
+  y: {
+    rmsd: StatisticalData;
+  };
 }
 
 // Distance per residue analysis
@@ -381,10 +395,8 @@ export interface RadiusOfGyrationAnalysis {
 export interface RMSDPairwiseAnalysis {
   start: number;
   step: number;
-  data: {
-    name: string;
-    rmsds: number[][];
-  }[];
+  name: string;
+  rmsds: number[][];
 }
 
 // RMSD per residue analysis
@@ -425,11 +437,29 @@ export interface TMScoresAnalysis {
   }[];
 }
 
+// Clusters analysis
+export interface ClustersAnalysis {
+  name: string;
+  cutoff: number;
+  clusters: {
+    frames: number[];
+    main: number;
+  }[];
+  transitions: {
+    from: number;
+    to: number;
+    count: number;
+  }[];
+  step: number;
+  version: string;
+}
+
 export type Analysis =
   | DistancePerResidueAnalysis
   | EnergiesAnalysis
   | FluctuationAnalysis
   | HydrogenBondsAnalysis
+  | InteractionData
   | PCAAnalysis
   | PocketsAnalysis
   | RadiusOfGyrationAnalysis
@@ -438,6 +468,17 @@ export type Analysis =
   | RMSDsAnalysis
   | SolventAccessibleSurfaceAnalysis
   | TMScoresAnalysis;
+
+// ============================================================================
+// Analysis Option Types
+// ============================================================================
+
+export interface AnalysisOption {
+  name: string; // Human readable label e.g., "Overall" or domain name
+  analysis: AnalysisName; // Concrete analysis variant e.g., "rmsd-pairwise-00"
+}
+
+export type AnalysisOptionsResponse = AnalysisOption[];
 
 // ============================================================================
 // Files Types

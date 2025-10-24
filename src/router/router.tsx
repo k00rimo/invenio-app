@@ -38,7 +38,12 @@ const routes: RouteObject[] = [
           },
           {
             path: "analyses",
-            element: <div>Analyses Page - TODO</div>,
+            lazy: async () => {
+              const { default: RecordAnalysesPage } = await import(
+                "@/pages/RecordAnalysesPage"
+              );
+              return { Component: RecordAnalysesPage };
+            },
           },
           {
             path: "trajectories",
