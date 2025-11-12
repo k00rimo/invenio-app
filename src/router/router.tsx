@@ -5,6 +5,11 @@ import PlaygroundPage from "@/pages/PlaygroundPage";
 import RecordPage from "@/pages/RecordPage";
 
 import { createBrowserRouter, type RouteObject } from "react-router";
+import DepositPage from "@/pages/DepositPage";
+import DepositSuccessPage from "@/pages/DepositSuccessPage";
+import CommunityPage from "@/pages/CommunitiyPage";
+import CommunityCreatePage from "@/pages/CommunityCreatePage";
+import CommunityDetailPage from "@/pages/CommunityDetailPage";
 
 const routes: RouteObject[] = [
   {
@@ -18,6 +23,31 @@ const routes: RouteObject[] = [
       {
         path: "/records-list",
         element: <RecordsListPage />,
+      },
+      {
+        path: "/deposition",
+        element: <DepositPage />,
+      },
+      {
+        path: "/deposition-success",
+        element: <DepositSuccessPage />,
+      },
+      {
+        path: "/community",
+        children: [
+          {
+            index: true,
+            element: <CommunityPage />,
+          },
+          {
+            path: "new",
+            element: <CommunityCreatePage />,
+          },
+          {
+            path: ":id",
+            element: <CommunityDetailPage />,
+          },
+        ],
       },
       {
         path: "/playgorund",

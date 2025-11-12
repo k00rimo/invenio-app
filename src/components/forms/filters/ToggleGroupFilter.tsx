@@ -2,49 +2,82 @@ import { Label } from "@/components/ui/label"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from "@/lib/utils"
 import { CheckIcon } from "lucide-react"
+import { useSearchParams } from "react-router"
 import AccordionFilterWrapper from "./AccordionFilterWrapper"
 
-export type RadioOption = {
+export type FilterOption = {
   label: string
-  count: number
+  value: string
+  count?: number // Optional now, as API might not give it to us
 }
 
 type ToggleGroupFilterProps = {
-  options: RadioOption[]
+  title: string
+  paramKey: string
+  options: FilterOption[]
   className?: string
+  defaultOpen?: boolean
 }
 
 const ToggleGroupFilter = ({
+  title,
+  paramKey,
   options,
-  className
+  className,
+  defaultOpen = false
 }: ToggleGroupFilterProps) => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  
+  const selectedValues = searchParams.getAll(paramKey)
+
   if (options.length === 0) {
     return null
   }
 
+  const handleValueChange = (newValues: string[]) => {
+    const newParams = new URLSearchParams(searchParams)
+
+    newParams.delete(paramKey)
+    newValues.forEach(value => newParams.append(paramKey, value))
+    newParams.set("page", "1")
+    
+    setSearchParams(newParams, { replace: true })
+  }
+
   return (
-    <AccordionFilterWrapper title="Language">
+    <AccordionFilterWrapper title={title} defaultOpen={defaultOpen}>
       <ToggleGroup 
         type="multiple" 
-        className={cn("w-full flex flex-col items-start gap-2.5", className)}
+        className={cn("w-full flex flex-col items-start gap-2", className)}
+        value={selectedValues}
+        onValueChange={handleValueChange}
       >
-        {options.map((item, index) => (
-          <div key={index} className="w-full flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+        {options.map((item) => (
+          <div key={item.value} className="w-full flex items-center justify-between group">
+            <div className="flex items-center gap-2.5 flex-1 truncate">
               <ToggleGroupItem 
                 variant="outline" 
                 size="sm" 
-                value={item.label} 
-                id={item.label}
-                className="w-6 h-6 p-0 data-[state=on]:bg-primary text-transparent data-[state=on]:text-background"
+                value={item.value} 
+                id={`${paramKey}-${item.value}`}
+                className="w-5 h-5 max-w-5 p-0 data-[state=on]:bg-primary text-transparent data-[state=on]:text-background"
+                aria-label={`Filter by ${item.label}`}
               >
-                <CheckIcon className="h-4 w-4 z-50" />
+                <CheckIcon className="h-3.5 w-3.5" />
               </ToggleGroupItem>
-              <Label htmlFor={item.label} className="cursor-pointer">
+              <Label 
+                htmlFor={`${paramKey}-${item.value}`} 
+                className="cursor-pointer font-body-small text-gray-dark"
+                title={item.label}
+              >
                 {item.label}
               </Label>
             </div>
-            <span className="text-gray-dark">({item.count})</span>
+            {item.count !== undefined && (
+              <span className="text-gray-dark font-body-small">
+                {"("}{item.count}{")"}
+              </span>
+            )}
           </div>
         ))}
       </ToggleGroup>

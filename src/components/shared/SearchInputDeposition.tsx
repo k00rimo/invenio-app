@@ -3,7 +3,7 @@ import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { SearchIcon, UploadCloudIcon } from "lucide-react"
 import { Link, useNavigate, useSearchParams } from "react-router"
-import { useEffect } from "react"
+import { useEffect, type ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -16,10 +16,21 @@ type SearchFormData = z.infer<typeof searchSchema>
 
 type SearchInputDepositionProps = {
   query?: string
+  secondaryBtnLink?: string
+  secondaryBtnText?: string
+  secondaryBtnIcon?: ReactNode
+  searchUrl?: string
   className?: string
 }
 
-const SearchInputDeposition = ({ className, query }: SearchInputDepositionProps) => {
+const SearchInputDeposition = ({
+  className,
+  query,
+  secondaryBtnLink = "/deposition",
+  secondaryBtnText = "Deposition",
+  secondaryBtnIcon = <UploadCloudIcon />,
+  searchUrl = "/records-list",
+}: SearchInputDepositionProps) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   
@@ -43,17 +54,18 @@ const SearchInputDeposition = ({ className, query }: SearchInputDepositionProps)
 
   const onSubmit = (data: SearchFormData) => {
     if (data.query) {
-      navigate(`/records-list?q=${encodeURIComponent(data.query)}`)
+      navigate(`${searchUrl}?q=${encodeURIComponent(data.query)}`)
     } else {
-      navigate('/records-list')
+      navigate(`${searchUrl}`)
     }
   }
 
   return (
-    <div className={cn("flex gap-5 items-center", className)}>
+    <div className={cn("flex gap-2 items-center", className)}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex w-full flex-col gap-1">
         <div className="flex w-full">
           <Input 
+            size={"lg"}
             className="rounded-r-none" 
             {...register("query")}
             placeholder="Search records... (e.g., Molecular data)" 
@@ -70,11 +82,17 @@ const SearchInputDeposition = ({ className, query }: SearchInputDepositionProps)
           <p className="text-sm text-red-500">{errors.query.message}</p>
         )}
       </form>
-      <Link to={"/deposition"}>
-        <Button variant={"secondary"} leftIcon={<UploadCloudIcon />} className="h-14">
-          Deposition
-        </Button>
-      </Link>
+      {secondaryBtnLink && secondaryBtnText && (
+        <Link to={secondaryBtnLink}>
+          <Button
+            variant={"secondary"}
+            className="h-14"
+            leftIcon={secondaryBtnIcon}
+          >
+            {secondaryBtnText}
+          </Button>
+        </Link>
+      )}
     </div>
   )
 }
