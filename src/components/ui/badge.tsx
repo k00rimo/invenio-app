@@ -25,6 +25,10 @@ const badgeVariants = cva(
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        "tag-normal":
+          "px-2 py-1 rounded-sm bg-primary-light border-gray-light",
+        "tag-clear-all":
+          "px-2 py-1 rounded-sm bg-red-light border-gray-light",
       },
     },
     defaultVariants: {

@@ -65,9 +65,11 @@ function Button({
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
     >
+      <>
       {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
       {children}
       {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+      </>
     </Comp>
   );
 }
