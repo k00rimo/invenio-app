@@ -193,7 +193,7 @@ export function DepositLayout() {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const processForm: SubmitHandler<DepositFormData> = (data) => {
+  const processForm: SubmitHandler<DepositFormData> = (_data) => {  {/* TODO: use in the deposition */}
     setStepStatusMap((prevMap) => {
       const newMap = { ...prevMap };
       steps.forEach((step) => {

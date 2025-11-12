@@ -12,8 +12,7 @@ import { useSearchParams } from "react-router";
 const RecordsListPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const query = searchParams.get('q') || '';
+  // const query = searchParams.get('q') || '';  // TODO: use query
   const currentSort = searchParams.get(QUERY_PARAM_SORT) || DEFAULT_SORT;
   const currentSize = searchParams.get(QUERY_PARAM_SIZE) || DEFAULT_SIZE;
   const currentPage = Number(searchParams.get(QUERY_PARAM_PAGE) || 1);
