@@ -7,11 +7,16 @@ import LanguageChanger from "./LanguageChanger"
 const Navbar = () => {
 
   return (
-    <nav className="bg-primary flex items-center justify-between px-5 py-5">
+    <nav className="bg-primary flex items-center justify-between px-5 py-4">
       <Link to={"/"}>
-        <SiteLogoIcon width={168} height={60} />
+        <SiteLogoIcon width={130} height={50} />
       </Link>
-      <div className="flex items-center gap-8 px-4">
+      <div className="flex items-center gap-6 px-4">
+        <Link to={"/community"}>
+          <Button variant={"navbar"} size={"navbar"}>
+            Communities
+          </Button>
+        </Link>
         <Button variant={"navbar"} size={"navbar"} leftIcon={<UserIcon className="min-h-6 min-w-6" />} >Login</Button>
         <LanguageChanger />
       </div>

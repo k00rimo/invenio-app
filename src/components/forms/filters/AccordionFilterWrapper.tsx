@@ -14,10 +14,6 @@ type AccordionFilterWrapperProps = {
   defaultOpen?: boolean
 }
 
-/**
- * A reusable wrapper component that places filter options inside a collapsible accordion.
- * This helps to keep the UI clean, especially when dealing with numerous filter categories.
- */
 const AccordionFilterWrapper = ({
   title,
   children,
@@ -34,7 +30,7 @@ const AccordionFilterWrapper = ({
       defaultValue={defaultOpen ? accordionValue : undefined}
     >
       <AccordionItem value={accordionValue} className="border-b-0">
-        <AccordionTrigger className="py-1 text-sm font-input hover:no-underline">
+        <AccordionTrigger className="py-1 text-sm font-input hover:no-underline items-center">
           {title}
         </AccordionTrigger>
         <AccordionContent className="pt-2.5 px-2.5">

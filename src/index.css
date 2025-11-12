@@ -18,6 +18,8 @@
   --color-primary: var(--primary);
   --color-primary-dark: var(--primary-dark);
   --color-primary-light: var(--primary-light);
+  --color-primary-medium: var(--primary-medium);
+  --color-primary-medium-hover: var(--primary-medium-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-dark: var(--secondary-dark);
@@ -52,6 +54,10 @@
   --color-green-light: var(--green-light);
   --color-blue-light: var(--blue-light);
   --color-red-light: var(--red-light);
+  --color-green-dark: var(--green-dark);
+  --color-red-dark: var(--red-dark);
+  --color-red-light: var(--red-light);
+  --color-orange-medium: var(--orange-medium);
 
   /* Custom font sizes for buttons */
   --font-size-button-normal: 1rem;
@@ -59,6 +65,7 @@
   --font-size-heading: 2.25rem;
   --font-size-heading2: 1.875rem;
   --font-size-heading3: 1.5rem;
+  --font-size-heading4: 1.25rem;
   --font-size-subheadline: 1rem;
   --font-size-body-small: 0.875rem;
   --font-size-narrow-text: 0.875rem;
@@ -69,6 +76,7 @@
   --line-height-heading: 2.5rem;
   --line-height-heading2: 2rem;
   --line-height-heading3: 1.5rem;
+  --line-height-heading4: 1.5rem;
   --line-height-subheadline: 1.25rem;
   --line-height-body-small: 1.25rem;
   --line-height-narrow-text: 1rem;
@@ -79,6 +87,7 @@
   --font-weight-heading: 600;
   --font-weight-heading2: 500;
   --font-weight-heading3: 500;
+  --font-weight-heading4: 500;
   --font-weight-subheadline: 500;
   --font-weight-body-small: 400;
   --font-weight-narrow-text: 400;
@@ -131,6 +140,10 @@
   --green-light: #2ef25c33;
   --blue-light: #0478f033;
   --red-light: #ff3e3e33;
+  --green-dark: #23BC47;
+  --red-dark: #BE3030;
+  --red-light: #ff3e3e33;
+  --orange-medium: #FFCC48;
 
   /* Fonts */
   --font-sans: "Poppins", sans-serif;
@@ -224,6 +237,14 @@
     );
   }
 
+  .bg-gradient-deposit-sidebar {
+    background-image: linear-gradient(
+      to bottom,
+      var(--primary-dark),
+      var(--primary)
+    );
+  }
+
   /* Fonts */
   .font-heading {
     font-size: var(--font-size-heading) !important;
@@ -241,6 +262,12 @@
     font-size: var(--font-size-heading3) !important;
     line-height: var(--line-height-heading3) !important;
     font-weight: var(--font-weight-heading3) !important;
+  }
+
+  .font-heading4 {
+    font-size: var(--font-size-heading4) !important;
+    line-height: var(--line-height-heading4) !important;
+    font-weight: var(--font-weight-heading4) !important;
   }
 
   .font-subheadline {

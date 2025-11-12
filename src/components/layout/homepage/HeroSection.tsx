@@ -19,14 +19,14 @@ const HeroSection = ({className}: HeroSectionProps) => {
     >
       <MoleculeIcon
         className={cn(
-          "absolute -left-0 -top-0 z-0 text-secondary-medium",  // TODO: change the color to a variable
+          "absolute -left-0 -top-0 z-0 text-primary-medium-hover",  // TODO: change the color to a variable
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"
       />
       <MoleculeIcon
         className={cn(
-          "absolute -bottom-0 -right-0 z-0 rotate-180 text-secondary-light",
+          "absolute -bottom-0 -right-0 z-0 rotate-180 text-primary-medium",
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"
@@ -36,12 +36,13 @@ const HeroSection = ({className}: HeroSectionProps) => {
           "flex w-full min-w-fit max-w-3xl flex-col gap-10"
         )}
       >
-        <div className="space-y-2.5">
-          <h1 className="font-heading text-background">Repository of Computational Chemistry Experiments</h1>
-          <p className="max-w-4xl text-gray-light">This repository contains experiments from various organizations. You can run simulations on experiments, download metadata and explore what you need.</p>
-        </div>
-        <div className="flex gap-5 shadow-2xl">
-          <SearchInputDeposition className="w-full p-5 rounded-xl bg-background"/>
+        
+        <div className="z-50 flex flex-col gap-6 shadow-2xl p-8 rounded-lg bg-background">
+          <div className="space-y-2">
+            <h1 className="font-heading md:max-w-3/5">Repository of Computational Chemistry Experiments</h1>
+            <p className="max-w-4xl text-gray-dark">This repository contains experiments from various organizations. You can run simulations on experiments, download metadata and explore what you need.</p>
+          </div>
+          <SearchInputDeposition className="w-full"/>
         </div>
       </div>
     </section>

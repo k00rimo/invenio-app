@@ -26,7 +26,7 @@ const RecordCard = ({
   authors,
   tags,
   affiliation,
-  imageUrl,
+  // imageUrl,
 }: RecordCardProps) => {
 
   const formattedDate = new Intl.DateTimeFormat('de-DE', {
@@ -36,10 +36,10 @@ const RecordCard = ({
   }).format(new Date(dateOfAcquisition));
 
   return (
-    <div className="w-full max-w-4xl p-6 shadow-dropdown rounded-sm space-y-4">
-      <div className="space-y-1">
+    <div className="w-full max-w-5xl p-6 shadow-dropdown rounded-sm space-y-4">
+      <div className="space-y-0.5">
         <Link to={recordLink} className="flex items-center justify-between">
-          <h3 className="font-heading3">{title}</h3>
+          <h4 className="font-heading4">{title}</h4>
           <div className="flex items-center gap-2.5">
             <Badge variant={access}>{access}</Badge>
             <Badge>{language}</Badge>
