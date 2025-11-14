@@ -12,12 +12,22 @@ const Navbar = () => {
         <SiteLogoIcon width={130} height={50} />
       </Link>
       <div className="flex items-center gap-6 px-4">
-        <Link to={"/community"}>
+        <Link to={"/community"} className="hidden md:block">
           <Button variant={"navbar"} size={"navbar"}>
             Communities
           </Button>
         </Link>
-        <Button variant={"navbar"} size={"navbar"} leftIcon={<UserIcon className="min-h-6 min-w-6" />} >Login</Button>
+        <Button
+          variant={"navbar"}
+          size={"navbar"}
+          leftIcon={
+            <UserIcon
+              className="min-h-6 min-w-6"
+            />
+          }
+          className="hidden md:flex">
+            Login
+          </Button>
         <LanguageChanger />
       </div>
     </nav>

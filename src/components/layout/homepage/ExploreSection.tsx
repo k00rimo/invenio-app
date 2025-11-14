@@ -8,8 +8,8 @@ type ExploreSectionProps = {
 const ExploreSection = ({className}: ExploreSectionProps) => {
 
   return (
-    <section className={cn("w-full bg-primary-light flex items-center justify-center gap-24 py-24 px-2.5", className)}>
-      <ExploreIcon />
+    <section className={cn("w-full bg-primary-light flex flex-col items-center justify-center gap-8 py-8 px-2 md:flex-row md:gap-24 md:py-24 md:px-8", className)}>
+      <ExploreIcon className="w-60 h-60 md:w-auto md:h-auto" />
       <div className="w-fit p-2.5 space-y-4">
         <h2 className="font-heading2">Explore data through interactive simulations</h2>
         <p className="max-w-2xl text-gray-dark">

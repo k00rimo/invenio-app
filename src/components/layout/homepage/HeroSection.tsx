@@ -42,7 +42,7 @@ const HeroSection = ({className}: HeroSectionProps) => {
             <h1 className="font-heading md:max-w-3/5">Repository of Computational Chemistry Experiments</h1>
             <p className="max-w-4xl text-gray-dark">This repository contains experiments from various organizations. You can run simulations on experiments, download metadata and explore what you need.</p>
           </div>
-          <SearchInputDeposition className="w-full"/>
+          <SearchInputDeposition className="hidden md:flex w-full"/>
         </div>
       </div>
     </section>

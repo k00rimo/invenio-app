@@ -11,7 +11,7 @@ type AboutSectionProps = {
 const AboutSection = ({className}: AboutSectionProps) => {
 
   return (
-    <section className={cn("w-full bg-background flex flex-col items-center justify-center gap-16 py-24 px-2.5", className)}>
+    <section className={cn("w-full bg-background flex flex-col items-center justify-center gap-8 py-8 px-2 md:gap-16 md:py-24 md:px-8", className)}>
       <div className="max-w-6xl p-2.5 space-y-4">
         <h2 className="font-heading2">About MDRepo</h2>
         <p className="text-gray-dark">
@@ -20,8 +20,8 @@ const AboutSection = ({className}: AboutSectionProps) => {
       </div>
       
       {/* cards */}
-      <div className="w-full max-w-6xl mx-auto flex flex-1 justify-between">
-        <Card>
+      <div className="w-full max-w-6xl mx-auto flex flex-col gap-6 items-center flex-1 justify-between md:flex-row">
+        <Card className="w-fit md:w-auto">
           <CardContent>
             <MagnifierIcon />
           </CardContent>
@@ -31,7 +31,7 @@ const AboutSection = ({className}: AboutSectionProps) => {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="w-fit md:w-auto">
           <CardContent>
             <CommunityIcon />
           </CardContent>
@@ -41,7 +41,7 @@ const AboutSection = ({className}: AboutSectionProps) => {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="w-fit md:w-auto">
           <CardContent>
             <DocumentIcon />
           </CardContent>
