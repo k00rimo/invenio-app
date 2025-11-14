@@ -1,8 +1,19 @@
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import elixirLogo from '@/assets/images/elixir-logo.png';
 import { Button } from "@/components/ui/button";
 import RecordCard from "@/components/layout/records-list-page/RecordCard";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ChevronDown, Pencil, Trash2 } from "lucide-react";
+import { DeleteCommunityDialog } from "@/components/dialogs/DeleteCommunityDialog";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const detail: {
   name: string
@@ -14,19 +25,77 @@ const detail: {
 
 const CommunityDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  console.log(id)
-  
+  console.log(id);
+
+  const handleDeleteCommunity = async () => {
+    try {
+      // TODO: Replace with actual API call
+      console.log("Deleting community:", id);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      toast.success("Community deleted successfully.");
+      setIsDeleteDialogOpen(false);
+      navigate("/community");
+    } catch (error) {
+      console.error("Failed to delete community:", error);
+      toast.error("Failed to delete community. Please try again.");
+    }
+  };
+
   return (
     <div className="self-center flex min-h-svh max-w-5xl flex-col gap-6 mt-16">
-      <div className="flex items-center gap-6">
-        <img
-          src={elixirLogo}
-          alt="Community profile picture"
-          className="h-[100px] w-[100px]"
-        />
-        <h1 className="font-heading mb-6">{detail.name}</h1>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-6">
+          <img
+            src={elixirLogo}
+            alt="Community profile picture"
+            className="h-[100px] w-[100px]"
+          />
+          <h1 className="font-heading mb-6">{detail.name}</h1>
+        </div>
+
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="outline"
+                size={"md"}
+                rightIcon={
+                  <ChevronDown className="w-5 h-5" />
+                }
+              >
+                Actions
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to={`/community/${id}/edit`}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  <span>Edit</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Delete</span>
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DeleteCommunityDialog onConfirm={handleDeleteCommunity} />
+        </AlertDialog>
       </div>
+
       <div className="space-y-2">
         <h3 className="font-heading3">Description</h3>
         <p className="text-gray-dark">{detail.description}</p>
