@@ -25,14 +25,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, UploadCloudIcon } from "lucide-react";
+import { UploadCloudIcon } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import type { CreateCommunityPayload } from "@/types/mdpositTypes";
+import { createCommunity, getCommunity, renameCommunity, updateCommunity } from "@/api/community";
+import { isAxiosError } from "axios";
+import { useAuthGuard } from "@/hooks/useAuthorization";
+import DataLoader from "@/components/ui/data-loader";
 
-const mockApiData = {
-  name: "Elixir (Fetched Data)",
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-}
+const createSlug = (title: string): string => {
+  if (!title) return "";
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+    .replace(/[^\w-]+/g, ''); // Remove all non-word characters
+};
 
 const CommunityFormPage = () => {
   const navigate = useNavigate();
@@ -40,6 +49,9 @@ const CommunityFormPage = () => {
   const isEditMode = Boolean(id);
   const [isLoadingData, setIsLoadingData] = useState(isEditMode);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [communitySlug, setCommunitySlug] = useState<string>("");
+  const isLoggedIn = useAuthGuard();
+
 
   const methods = useForm<CommunityFormData>({
     resolver: zodResolver(communityFormSchema),
@@ -65,19 +77,21 @@ const CommunityFormPage = () => {
       const fetchCommunityData = async () => {
         setIsLoadingData(true);
         try {
-          // TODO: Replace with actual API call:
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const fetchedData = mockApiData; 
+          const fetchedData = await getCommunity(id ?? "error");
+
+          setCommunitySlug(fetchedData.slug);
 
           // Populate the form with fetched data
           reset({
-            name: fetchedData.name,
-            description: fetchedData.description,
+            name: fetchedData.metadata.title,
+            description: fetchedData.metadata.description ?? "",
             picture: undefined, // File inputs cannot be programmatically set
           });
         } catch (error) {
           console.error("Failed to fetch community data:", error);
-          toast.error("Failed to load community data.");
+          toast.error("Failed to load community data.", {
+            position: "top-center"
+          });
           navigate("/community");
         } finally {
           setIsLoadingData(false);
@@ -96,41 +110,82 @@ const CommunityFormPage = () => {
   const { ref: fileInputRegisterRef, ...fileInputProps } = register("picture");
 
   const processForm: SubmitHandler<CommunityFormData> = async (data) => {
-    const formData = new FormData();
-    formData.append("name", data.name);
-    formData.append("description", data.description);
-    if (data.picture && data.picture.length > 0) {
-      formData.append("picture", data.picture[0]);
-    }
-    
     try {
-      if (isEditMode) {
-        // TODO: Replace with actual API call
-        console.log("UPDATING community:", id, data);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      const payload: CreateCommunityPayload = {
+        slug: communitySlug === "" ? createSlug(data.name) : communitySlug,
+        metadata: {
+          title: data.name,
+          description: data.description
+        },
+        access: {
+          visibility: "public",
+        },
+      }
 
+      if (isEditMode) {
+        console.log("UPDATING community:", id, data);
+
+
+        const updatedCommunity = await updateCommunity(id ?? "error", payload);
+        
+        // // TODO: uncomment when the API works, getting error code 502 for now
+        // if (data.picture && data.picture.length > 0) {
+        //   console.log("updating community logo for id:", id)
+        //   const fileUploaded = await uploadCommunityLogo(id ?? "error", data.picture[0])
+        //   console.log("uploaded", fileUploaded)
+        // }
+        
         toast.success("Community updated.");
-        navigate(`/community/${id}`);
+        
+        const newSlug = createSlug(updatedCommunity.metadata.title);
+        if (newSlug !== communitySlug) {
+          console.log("hello", updatedCommunity.slug, communitySlug)
+
+          try {
+            await renameCommunity(id ?? "error", { slug: newSlug })
+          } catch (error) {
+            console.error("Failed to rename community:", error);
+            toast.error("Failed to rename community.", {
+              position: "top-center"
+            });
+          }
+        }
+
+        navigate(`/community/${newSlug}`);
       } else {
-        // TODO: Replace with actual API call
         console.log("CREATING community:", data);
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        const newCommunity = await createCommunity(payload);
         
         toast.success("Community created.");
-        // TODO: Navigate to new community's page if API returns ID
-        navigate("/community"); // Or back to list
+        navigate(`/community/${newCommunity.slug}`);
       }
     } catch (error) {
+      if (!isAxiosError(error)) {
+        return;
+      }
+
+      // edge case - session expired *during* form fill
+      if (error.status === 403) {
+        toast.error("Your session expired. Please log in again.", {
+          position: "top-center"
+        });
+        const currentPath = window.location.pathname + window.location.search;
+        navigate(`/login?next=${encodeURIComponent(currentPath)}`, { replace: true });
+        return; // Stop processing
+      }
+
       console.error("Failed to save community:", error);
-      toast.error("Failed to save community. Please try again.");
+      toast.error("Failed to save community. Please try again.", {
+        position: "top-center"
+      });
     }
   };
 
-  if (isLoadingData) {
+
+  if (isLoadingData || !isLoggedIn) {
     return (
-      <div className="self-center flex w-full max-w-3xl justify-center py-16">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <DataLoader />
     );
   }
 

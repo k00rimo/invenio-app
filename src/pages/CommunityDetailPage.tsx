@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from "react-router";
-import elixirLogo from '@/assets/images/elixir-logo.png';
+import placeholderLogo from '@/assets/images/square-placeholder.png';
 import { Button } from "@/components/ui/button";
 import RecordCard from "@/components/layout/records-list-page/RecordCard";
 import {
@@ -9,35 +9,59 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { AlertDialog } from "@/components/ui/alert-dialog";
 import { ChevronDown, Pencil, Trash2 } from "lucide-react";
 import { DeleteCommunityDialog } from "@/components/dialogs/DeleteCommunityDialog";
 import { toast } from "sonner";
-import { useState } from "react";
-
-const detail: {
-  name: string
-  description: string
-} = {
-  name: "Elixir",
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-}
+import { useState, useEffect } from "react";
+import { useCommunity } from "@/hooks";
+import { deleteCommunity } from "@/api/community";
+import { useAuthAction } from "@/hooks/useAuthorization";
+import { useQueryClient } from "@tanstack/react-query";
+import DataLoader from "@/components/ui/data-loader";
 
 const CommunityDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { withAuthCheck } = useAuthAction();
+
+  const apiLogoUrl = `/api/communities/${id}/logo`;
+  const [imgSrc, setImgSrc] = useState(apiLogoUrl)
+
+  useEffect(() => {
+    if (id) {
+      setImgSrc(`/api/communities/${id}/logo`);
+    } else {
+      setImgSrc(placeholderLogo);
+    }
+  }, [id]);
+
+  const handleImageError = () => {
+    setImgSrc(placeholderLogo);
+  };
+
+  const { data, isLoading, isError, error } = useCommunity(id ?? "error");
+  
+  if (isLoading) {
+    return <DataLoader />
+  }
+
+  if (isError) {
+    return <div>Error fetching communities: {error?.message}</div>;
+  }
 
   console.log(id);
 
   const handleDeleteCommunity = async () => {
     try {
-      // TODO: Replace with actual API call
       console.log("Deleting community:", id);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await deleteCommunity(id ?? "error");
 
       toast.success("Community deleted successfully.");
       setIsDeleteDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["communities"] });
       navigate("/community");
     } catch (error) {
       console.error("Failed to delete community:", error);
@@ -50,11 +74,12 @@ const CommunityDetailPage = () => {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-6">
           <img
-            src={elixirLogo}
+            src={imgSrc}
+            onError={handleImageError}
             alt="Community profile picture"
-            className="h-[100px] w-[100px]"
+            className="h-[100px] w-[100px] rounded-md object-cover"
           />
-          <h1 className="font-heading mb-6">{detail.name}</h1>
+          <h1 className="font-heading mb-6">{data?.metadata.title}</h1>
         </div>
 
         <AlertDialog
@@ -81,15 +106,19 @@ const CommunityDetailPage = () => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </AlertDialogTrigger>
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  const openDeleteDialog = () => {
+                    setIsDeleteDialogOpen(true);
+                  };
+                  withAuthCheck(openDeleteDialog);
+                }}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <DeleteCommunityDialog onConfirm={handleDeleteCommunity} />
@@ -98,11 +127,11 @@ const CommunityDetailPage = () => {
 
       <div className="space-y-2">
         <h3 className="font-heading3">Description</h3>
-        <p className="text-gray-dark">{detail.description}</p>
+        <p className="text-gray-dark">{data?.metadata.description ?? "Empty"}</p>
       </div>
       <div className="flex justify-between items-end">
         <h3 className="font-heading3">Recent records</h3>
-        <Link to={`/records-list?community=${detail.name}`}>  {/* TODO: change to data from the API */}
+        <Link to={`/records-list?community=${data?.slug}`}>
           <Button size={"md"}>Search community records</Button>
         </Link>
       </div>

@@ -10,6 +10,7 @@ import DepositSuccessPage from "@/pages/DepositSuccessPage";
 import CommunityPage from "@/pages/CommunitiyPage";
 import CommunityDetailPage from "@/pages/CommunityDetailPage";
 import CommunityFormPage from "@/pages/CommunityFormPage";
+import LoginPage from "@/pages/LoginPage";
 
 const routes: RouteObject[] = [
   {
@@ -19,6 +20,10 @@ const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "/login",
+        element: <LoginPage />,
       },
       {
         path: "/records-list",
