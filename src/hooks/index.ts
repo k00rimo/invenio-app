@@ -1,3 +1,4 @@
+import { getCommunities, getCommunity } from "@/api/community";
 import {
   getProjectAnalysis,
   getProjectAnalysisData,
@@ -6,12 +7,15 @@ import {
   getProjects,
   getAvailableAnalyses,
 } from "@/api/projects";
+import { AuthContext } from "@/context";
 import type {
   AnalysisName,
   AnalysisOptionsResponse,
+  CommunityQueryParams,
   ProjectsQueryParams,
 } from "@/types/mdpositTypes";
 import { useQuery } from "@tanstack/react-query";
+import React from "react";
 
 export const useRecords = (params?: ProjectsQueryParams) => {
   return useQuery({
@@ -78,4 +82,27 @@ export const useAvailableAnalyses = (
     queryFn: async () => getAvailableAnalyses(projectId!, replica),
     enabled: !!projectId,
   });
+};
+
+export const useCommunities = (params?: CommunityQueryParams) => {
+  return useQuery({
+    queryKey: ["communities", params],
+    queryFn: () => getCommunities(params ?? {}),
+  });
+};
+
+export const useCommunity = (id: string) => {
+  return useQuery({
+    queryKey: ["community", id],
+    queryFn: () => getCommunity(id),
+  });
+};
+
+
+export const useAuth = () => {
+  const context = React.useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
