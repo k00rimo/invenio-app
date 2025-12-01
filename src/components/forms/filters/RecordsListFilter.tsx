@@ -57,14 +57,12 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
             title="Creators" 
             paramKey="creator" 
             placeholder="Search creators..." 
-            defaultOpen={true}
         />
         <InputFilter 
             title="Tags" 
             paramKey="tag" 
             placeholder="e.g. membrane, protein..." 
             splitByComma={true}
-            defaultOpen={true}
         />
 
         {/* -- Main Information -- */}
