@@ -15,7 +15,7 @@ docker build -t cerit.io/<username|org-name>/mdrepo-frontend:v0.x .
 - Get your credentials and [log in through the CLI](https://docs.cerit.io/en/docs/docker/harbor#logging-in-through-command-line)
 
 ```bash
-docker login carit.io
+docker login cerit.io
 # use credentials from the Harbor web interface
 ````
 
