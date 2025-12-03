@@ -18,7 +18,7 @@ export function IdentifierArray() {
   const { control } = useFormContext<DepositFormData>();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "basicInfo.objectIdentifiers",
+    name: "administrative.objectIdentifiers",
   });
 
   return (
@@ -40,7 +40,7 @@ export function IdentifierArray() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
               <FormField
                 control={control}
-                name={`basicInfo.objectIdentifiers.${index}.identifier`}
+                name={`administrative.objectIdentifiers.${index}.identifier`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel required>Identifier</FormLabel>
@@ -58,7 +58,7 @@ export function IdentifierArray() {
 
               <FormField
                 control={control}
-                name={`basicInfo.objectIdentifiers.${index}.identifierType`}
+                name={`administrative.objectIdentifiers.${index}.identifierType`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel required>Identifier Type</FormLabel>

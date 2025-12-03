@@ -18,7 +18,7 @@ export function FundingArray() {
   const { control } = useFormContext<DepositFormData>();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "basicInfo.fundingReference",
+    name: "administrative.fundingReference",
   });
 
   return (
@@ -39,7 +39,7 @@ export function FundingArray() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-8">
               <FormField
                 control={control}
-                name={`basicInfo.fundingReference.${index}.funderName`}
+                name={`administrative.fundingReference.${index}.funderName`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel required>Funder Name</FormLabel>
@@ -57,7 +57,7 @@ export function FundingArray() {
 
               <FormField
                 control={control}
-                name={`basicInfo.fundingReference.${index}.funderIdentifier`}
+                name={`administrative.fundingReference.${index}.funderIdentifier`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Funder Identifier</FormLabel>
@@ -75,7 +75,7 @@ export function FundingArray() {
 
               <FormField
                 control={control}
-                name={`basicInfo.fundingReference.${index}.awardNumber`}
+                name={`administrative.fundingReference.${index}.awardNumber`}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Award Number</FormLabel>
