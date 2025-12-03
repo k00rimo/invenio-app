@@ -6,8 +6,15 @@ const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
 // --- Reusable Shared Schemas ---
 
 const optionalPositiveNumber = z.preprocess(
-  (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
-  z.number().positive({ message: "Must be positive" }).optional()
+  (val) => {
+    if (val === "" || val === null || val === undefined) return undefined;
+    
+    const parsed = Number(val);
+    return isNaN(parsed) ? val : parsed;
+  },
+  z.number({ error: "Must be a valid number" })
+   .positive({ message: "Must be positive" })
+   .optional()
 );
 
 export const creatorSchema = z.object({
