@@ -12,6 +12,7 @@ type RecordCardProps = {
   access: "open" | "restricted" | "closed"
   creationDate?: string
   authors?: string[]
+  method?: string
   tags: string[]
   description?: string
   imageUrl: string
@@ -23,6 +24,7 @@ const RecordCard = ({
   access,
   creationDate,
   authors,
+  method,
   // tags,
   description,
   imageUrl,
@@ -48,6 +50,9 @@ const RecordCard = ({
             <LabeledList label="Authors" list={authors} orientation="horizontal" />
           )}
           {/* <LabeledList label="Tags" list={tags} orientation="horizontal" /> */}
+          {method && (
+            <LabeledList label="Method" list={[method]} orientation="horizontal" />
+          )}
           <CollapsibleBlock label="Description" text={description} className="" />
         </div>
         <img

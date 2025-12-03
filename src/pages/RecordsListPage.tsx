@@ -140,6 +140,7 @@ const RecordsListPage = () => {
                 access={"open"}  // TODO: when api works, replace with actual access
                 creationDate={record.creationDate}
                 authors={record.metadata.AUTHORS}
+                method={record.metadata.METHOD}
                 tags={["Protein", "Structure", "Molecule"]}
                 description={record.metadata.DESCRIPTION}
                 imageUrl={`${API_URL}/projects/${record.accession}/files/screenshot.jpg`}
