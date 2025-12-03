@@ -539,3 +539,163 @@ export interface FileQueryParams {
   [key: string]: string | boolean | undefined;
   parse?: boolean;
 }
+
+
+/**
+ * Known values for community sort options.
+ */
+export type CommunitySortOptions =
+  | "bestmatch"
+  | "newest"
+  | "oldest"
+  | "updated-desc"
+  | "updated-asc"
+  | "version";
+
+/**
+ * Known values for community type.
+ */
+export type CommunityTypeOptions =
+  | "organization"
+  | "event"
+  | "topic"
+  | "project";
+
+/**
+ * Query parameters for searching communities.
+ * Based on /api/communities documentation.
+ */
+export type CommunityQueryParams = {
+  /** Search query (ElasticSearch query string syntax) */
+  q?: string;
+  /** Sort order */
+  sort?: CommunitySortOptions | string; // Allow string for flexibility
+  /** Number of items per page */
+  size?: string | number;
+  /** Page number */
+  page?: string | number;
+  /** Filter by community type */
+  type?: CommunityTypeOptions | string;
+  /** Pretty print JSON response */
+  prettyprint?: string;
+};
+
+// --- Response Types ---
+
+interface CommunityMetadata {
+  title: string;
+  description?: string;
+  // ... other metadata fields
+}
+
+interface CommunityAccess {
+  visibility: string;
+  members_visibility: string;
+  member_policy: string;
+  record_policy: string;
+  review_policy: string;
+}
+
+interface CommunityDeletionStatus {
+  is_deleted: boolean;
+  status: string;
+}
+
+interface CommunityChildren {
+  allow: boolean;
+}
+
+/**
+ * Represents a single community record returned in the search results.
+ */
+export interface CommunityHit {
+  id: string;
+  created: string; // ISO date string
+  updated: string; // ISO date string
+  links: Record<string, string>;
+  revision_id: number;
+  slug: string;
+  metadata: CommunityMetadata;
+  access: CommunityAccess;
+  custom_fields: Record<string, unknown>;
+  deletion_status: CommunityDeletionStatus;
+  children: CommunityChildren;
+}
+
+// --- Aggregations Types ---
+
+export interface AggregationBucket {
+  key: string;
+  doc_count: number;
+  label: string;
+  is_selected: boolean;
+}
+
+export interface Aggregation {
+  buckets: AggregationBucket[];
+  label: string;
+}
+
+/**
+ * The full response object from the /api/communities search endpoint.
+ */
+export interface CommunitySearchResponse {
+  hits: {
+    hits: CommunityHit[];
+    total: number;
+  };
+  aggregations: {
+    type: Aggregation;
+    visibility: Aggregation;
+    // ... other aggregations
+  };
+  sortBy: string;
+  links: Record<string, string>;
+}
+
+export type CreateCommunityPayload = {
+  slug: string; // This is the slug (e.g., "biology-hub-com")
+  metadata: {
+    title: string;
+    description: string;
+    // Add other fields like 'type' if required by the API
+  };
+  access: {
+    visibility: "public" | "restricted";
+  }
+};
+
+export interface UpdateCommunityMetadataPayload {
+  slug: string;
+  metadata: {
+    description?: string;
+  };
+  access: {
+    visibility: "public" | "restricted";
+  };
+}
+
+export type LoginPayload = {
+  next: string
+  email: string
+  password: string
+}
+
+export type LoginResponse = {
+  id: number;
+  email: string;
+  /** ISO 8601 Date string (e.g. "2025-09-24T16:19:14.618864") */
+  confirmed_at: string; 
+  last_login_at: string;
+
+  roles: string[];
+}
+
+export type LogoutResponse = {
+  message: string
+}
+
+export interface RenameCommunityPayload {
+  slug: string
+}
+
