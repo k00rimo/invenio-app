@@ -32,7 +32,7 @@ import type { CreateCommunityPayload } from "@/types/mdpositTypes";
 import { createCommunity, getCommunity, renameCommunity, updateCommunity } from "@/api/community";
 import { isAxiosError } from "axios";
 import { useAuthGuard } from "@/hooks/useAuthorization";
-import DataLoader from "@/components/ui/data-loader";
+import LoadingComponent from "@/components/shared/LoadingComponent";
 
 const createSlug = (title: string): string => {
   if (!title) return "";
@@ -184,9 +184,7 @@ const CommunityFormPage = () => {
 
 
   if (isLoadingData || !isLoggedIn) {
-    return (
-      <DataLoader />
-    );
+    return <LoadingComponent />
   }
 
   return (

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useParams } from "react-router";
 import placeholderLogo from '@/assets/images/square-placeholder.png';
 import { Button } from "@/components/ui/button";
-import RecordCard from "@/components/layout/records-list-page/RecordCard";
+import RecordCard from "@/components/layout/recordsListPage/RecordCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,7 @@ import { useCommunity } from "@/hooks";
 import { deleteCommunity } from "@/api/community";
 import { useAuthAction } from "@/hooks/useAuthorization";
 import { useQueryClient } from "@tanstack/react-query";
-import DataLoader from "@/components/ui/data-loader";
+import LoadingComponent from "@/components/shared/LoadingComponent";
 
 const CommunityDetailPage = () => {
   const { id } = useParams();
@@ -45,7 +45,7 @@ const CommunityDetailPage = () => {
   const { data, isLoading, isError, error } = useCommunity(id ?? "error");
   
   if (isLoading) {
-    return <DataLoader />
+    return <LoadingComponent />
   }
 
   if (isError) {
@@ -136,10 +136,10 @@ const CommunityDetailPage = () => {
         </Link>
       </div>
       <div className="space-y-5 mb-8">
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"open"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"restricted"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"closed"} language={"English"} dateOfAcquisition={new Date("8.10.2025")} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} affiliation={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
-        </div>
+        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"open"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
+        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"restricted"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
+        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"closed"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
+      </div>
     </div>
   );
 }

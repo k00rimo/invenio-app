@@ -1,9 +1,9 @@
 import CommunityCard from "@/components/layout/community/CommunityCard";
-import RecordsPagination from "@/components/layout/records-list-page/RecordsPagination";
+import RecordsPagination from "@/components/layout/recordsListPage/RecordsPagination";
+import LoadingComponent from "@/components/shared/LoadingComponent";
 import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
-import DataLoader from "@/components/ui/data-loader";
 import { useCommunities } from "@/hooks";
-import { DEFAULT_COMMUNITY_SIZE, QUERY_PARAM_PAGE, QUERY_PARAM_SIZE } from "@/lib/constants";
+import { DEFAULT_COMMUNITY_SIZE, QUERY_PARAM_PAGE, QUERY_PARAM_SIZE } from "@/lib/constants/constants";
 import { cn } from "@/lib/utils";
 import type { CommunityQueryParams } from "@/types/mdpositTypes";
 import { PlusCircle } from "lucide-react";
@@ -25,7 +25,7 @@ const CommunityPage = () => {
   const { data, isLoading, isError, error } = useCommunities(params);
 
   if (isLoading) {
-    return <DataLoader />
+    return <LoadingComponent />
   }
 
   if (isError) {
