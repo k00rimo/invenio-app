@@ -35,7 +35,7 @@ const RecordsListFilter = ({ className }: RecordsListFilterProps) => {
   const isViewAllVersions = searchParams.get("view_all_versions") === "true";
 
   return (
-    <aside className={cn("space-y-4 p-4 rounded-sm min-w-[280px] w-full max-w-xs h-fit", className)}>
+    <aside className={cn("space-y-4 p-4 rounded-sm min-w-[260px] w-full max-w-xs h-fit", className)}>
       <div className="flex items-center justify-between">
         <h3 className="font-heading3 text-lg">Filters</h3>
       </div>

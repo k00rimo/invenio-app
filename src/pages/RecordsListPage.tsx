@@ -66,7 +66,7 @@ const RecordsListPage = () => {
       {/* filters */}
       <RecordsListFilter />
 
-      <div className="flex flex-col gap-6 relative w-5xl">
+      <div className="flex flex-col gap-6 relative lg:w-2xl 2xl:w-5xl">
         
         <div className="hidden lg:block absolute left-full ml-8 w-10 h-full pointer-events-none">
           <div className="sticky top-[calc(100vh-8rem)] pointer-events-auto">
