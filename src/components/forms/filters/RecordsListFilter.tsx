@@ -1,3 +1,4 @@
+// src/components/records-list-filter.tsx
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -5,17 +6,19 @@ import { cn } from "@/lib/utils"
 import { useSearchParams } from "react-router"
 import ToggleGroupFilter from "./ToggleGroupFilter"
 import InputFilter from "./InputFilter"
-import * as Options from "@/lib/deposition/formOptions"
+import * as Options from "@/lib/deposition/formOptions" 
 
 type RecordsListFilterProps = {
   className?: string
 }
 
-const withCounts = (options: { value: string, label: string }[]) => {
+// Helper to safely map options if they exist, or return empty array to prevent crash
+const withCounts = (options: { value: string, label: string }[] | undefined) => {
+    if (!options) return []
     return options.map(opt => ({ ...opt, count: 0 }))
 }
 
-const RecordsListFilter = ({className}: RecordsListFilterProps) => {
+const RecordsListFilter = ({ className }: RecordsListFilterProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const handleViewAllVersionsChange = (checked: boolean) => {
@@ -39,7 +42,9 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
       <Separator />
       
       <div className="space-y-1">
-        {/* -- View All Versions Switch -- */}
+        {/* ==========================
+            SECTION 1: GENERAL
+           ========================== */}
         <div className="flex items-center justify-between py-2 px-1">
           <Label htmlFor="view-all-versions" className="text-sm font-normal cursor-pointer">
             View all versions
@@ -52,11 +57,15 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
         </div>
         <Separator className="my-2" />
 
-        {/* -- Top Level Filters -- */}
         <InputFilter 
             title="Creators" 
             paramKey="creator" 
-            placeholder="Search creators..." 
+            placeholder="Name or ORCID..." 
+        />
+         <InputFilter 
+            title="Affiliations" 
+            paramKey="affiliation" 
+            placeholder="University or Inst..." 
         />
         <InputFilter 
             title="Tags" 
@@ -65,138 +74,100 @@ const RecordsListFilter = ({className}: RecordsListFilterProps) => {
             splitByComma={true}
         />
 
-        {/* -- Main Information -- */}
+        {/* ==========================
+            SECTION 2: SYSTEM INFO
+           ========================== */}
         <Separator className="my-4" />
         <h4 className="px-1 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Main Information
+            System Composition
         </h4>
 
-        <ToggleGroupFilter 
-            title="Simulation Type"
-            paramKey="simulation_type"
-            options={withCounts(Options.simulationTypeOptions)}
-            defaultOpen={true}
+        {/* Mapped from schema: systemInformation.simulationEngine.name */}
+        <InputFilter 
+            title="Software / Engine" 
+            paramKey="software" 
+            placeholder="e.g. GROMACS, LAMMPS..." 
         />
-         <ToggleGroupFilter 
-            title="Ensemble"
-            paramKey="ensemble"
-            options={withCounts(Options.statisticalEnsembleOptions)}
-        />
-        {/* New Main Info Fields */}
+
+        {/* Mapped from schema: systemInformation.forceField */}
         <InputFilter 
             title="Force Field" 
             paramKey="force_field" 
             placeholder="e.g. CHARMM36m..."
         />
+
+        {/* Mapped from schema: systemInformation.solventModel / proteinModel */}
+        <InputFilter 
+            title="Solvent Model" 
+            paramKey="solvent" 
+            placeholder="e.g. TIP3P..."
+        />
+        <InputFilter 
+            title="Protein Model" 
+            paramKey="protein" 
+            placeholder="e.g. AMBER99SB..."
+        />
+
+        {/* Mapped from schema: systemInformation.systemSize */}
+        <InputFilter 
+            title="Atom Count (Min)" 
+            paramKey="min_atoms" 
+            placeholder="e.g. 10000..."
+        />
+
+        {/* ==========================
+            SECTION 3: EXPERIMENT
+           ========================== */}
+        <Separator className="my-4" />
+        <h4 className="px-1 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Simulation Params
+        </h4>
+
+        {/* Mapped from schema: experiments.length */}
+        <InputFilter 
+            title="Sim. Length (ns)" 
+            paramKey="length" 
+            placeholder="Min length..."
+        />
+
+         {/* Mapped from schema: experiments.timeStep */}
+         <InputFilter 
+            title="Time Step (fs)" 
+            paramKey="timestep" 
+            placeholder="e.g. 2..."
+        />
+
+        {/* Mapped from schema: experiments.thermostat.tcoupl (kept as common filter) */}
         <InputFilter 
             title="Temperature (K)" 
             paramKey="temp" 
             placeholder="e.g. 300, 310..."
             splitByComma={true} 
         />
+        <ToggleGroupFilter 
+            title="Thermostat"
+            paramKey="thermostat"
+            options={withCounts(Options.tcouplOptions)}
+        />
+
+         {/* Mapped from schema: experiments.barostat.pcoupl */}
          <InputFilter 
             title="Pressure (bar)" 
             paramKey="pressure" 
             placeholder="e.g. 1..."
-             splitByComma={true}
-        />
-        <InputFilter 
-            title="Sim. Length (ns)" 
-            paramKey="length" 
-            placeholder="Min length..."
-        />
-         <InputFilter 
-            title="Time Step (fs)" 
-            paramKey="timestep" 
-            placeholder="e.g. 2..."
-        />
-         <InputFilter 
-            title="Box Size (nm)" 
-            paramKey="box_size" 
-            placeholder="Approx. size..."
-        />
-
-        <ToggleGroupFilter 
-            title="Free Energy Calc."
-            paramKey="free_energy"
-            options={withCounts(Options.freeEnergyCalculationOptions)}
-        />
-        {/* Boolean toggles from schema can be mapped to simple Yes/No options */}
-        <ToggleGroupFilter 
-            title="Umbrella Sampling"
-            paramKey="umbrella"
-            options={[
-                { label: "Yes", value: "true", count: 0 },
-                { label: "No", value: "false", count: 0 }
-            ]}
-        />
-         <ToggleGroupFilter 
-            title="AWH Biasing"
-            paramKey="awh"
-            options={[
-                { label: "Yes", value: "true", count: 0 },
-                { label: "No", value: "false", count: 0 }
-            ]}
-        />
-
-         {/* -- Detailed Information -- */}
-         <Separator className="my-4" />
-         <h4 className="px-1 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Detailed Information
-        </h4>
-        
-        <ToggleGroupFilter 
-            title="VdW Type"
-            paramKey="vdw_type"
-            options={withCounts(Options.vdwTypeOptions)}
-        />
-        <ToggleGroupFilter 
-            title="VdW Modifier"
-            paramKey="vdw_modifier"
-            options={withCounts(Options.vdwModifierOptions)}
-        />
-        <ToggleGroupFilter 
-            title="Dispersion Corr."
-            paramKey="disp_corr"
-            options={withCounts(Options.dispcorrOptions)}
-        />
-
-         <ToggleGroupFilter 
-            title="Coulomb Type"
-            paramKey="coulomb_type"
-            options={withCounts(Options.coulombTypeOptions)}
-        />
-        <ToggleGroupFilter 
-            title="Coulomb Modifier"
-            paramKey="coulomb_modifier"
-            options={withCounts(Options.coulombModifierOptions)}
-        />
-
-         <ToggleGroupFilter 
-            title="Thermostat"
-            paramKey="thermostat"
-            options={withCounts(Options.tcouplOptions)}
+            splitByComma={true}
         />
          <ToggleGroupFilter 
             title="Barostat"
             paramKey="barostat"
             options={withCounts(Options.pcouplOptions)}
         />
-        <ToggleGroupFilter 
-            title="Barostat Type"
-            paramKey="barostat_type"
-            options={withCounts(Options.pcouplTypeOptions)}
-        />
 
+        {/* Mapped from schema: experiments.constraintScheme */}
         <ToggleGroupFilter 
             title="Constraints"
-            paramKey="constraint_algo"
+            paramKey="constraints"
             options={withCounts(Options.constraintAlgorithmOptions)}
-        />
-         <ToggleGroupFilter 
-            title="PBC"
-            paramKey="pbc"
-            options={withCounts(Options.pbcOptions)}
         />
       </div>
     </aside>

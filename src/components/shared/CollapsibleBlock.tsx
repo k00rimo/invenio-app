@@ -6,7 +6,7 @@ import { Button } from "../ui/button";
 
 type CollapsibleBlockProps = {
   label: string
-  text: string
+  text?: string
   className?: string
 }
 
@@ -29,10 +29,10 @@ const CollapsibleBlock = ({ label, text, className }: CollapsibleBlockProps) => 
           id={contentId}
           className={cn(
             "font-narrow-text text-gray-dark transition-all",
-            !isExpanded && "line-clamp-3"
+            !isExpanded && "line-clamp-2"
           )}
         >
-          {text}
+          {text ? text : "Empty"}
         </p>
         
         <Button
@@ -45,8 +45,8 @@ const CollapsibleBlock = ({ label, text, className }: CollapsibleBlockProps) => 
           aria-label={isExpanded ? `Collapse ${label}` : `Expand ${label}`}
         >
           {isExpanded ? 
-            <ChevronUp className="shrink-0 text-gray-dark w-6 h-6" />
-            : <ChevronDown className="shrink-0 text-gray-dark w-6 h-6" />
+            <ChevronUp className="shrink-0 text-gray-dark w-5 h-5" />
+            : <ChevronDown className="shrink-0 text-gray-dark w-5 h-5" />
           }
         </Button>
       </div>

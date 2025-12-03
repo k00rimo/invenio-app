@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
 import { SearchIcon, UploadCloudIcon } from "lucide-react"
-import { Link, useNavigate, useSearchParams } from "react-router"
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router"
 import { useEffect, type ReactNode } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -33,6 +33,7 @@ const SearchInputDeposition = ({
 }: SearchInputDepositionProps) => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   
   const urlQuery = searchParams.get('q') || query || ''
 
@@ -52,12 +53,25 @@ const SearchInputDeposition = ({
     reset({ query: urlQuery })
   }, [urlQuery, reset])
 
-  const onSubmit = (data: SearchFormData) => {
-    if (data.query) {
-      navigate(`${searchUrl}?q=${encodeURIComponent(data.query)}`)
+const onSubmit = (data: SearchFormData) => {
+    let params: URLSearchParams;
+
+    if (location.pathname === searchUrl) {
+      params = new URLSearchParams(searchParams);
     } else {
-      navigate(`${searchUrl}`)
+      params = new URLSearchParams();
     }
+
+    if (data.query) {
+      params.set("q", data.query);
+    } else {
+      params.delete("q");
+    }
+
+    // 5. UX: Always reset pagination on a new text search
+    // (Adjust 'page' to whatever key you use for pagination)
+    params.delete("page");
+    navigate(`${searchUrl}?${params.toString()}`);
   }
 
   return (
