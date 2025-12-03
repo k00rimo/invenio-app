@@ -16,6 +16,7 @@ export type StepStatus = {
 interface DepositSidebarProps {
   steps: StepStatus[];
   onStepClick: (stepId: number) => void;
+  onSaveDraft: () => void; // <--- ADDED PROP
 }
 
 const statusBaseClassName = "text-background hover:text-foreground";
@@ -39,16 +40,23 @@ const statusConfig = {
   },
 };
 
-export function DepositSidebar({ steps, onStepClick }: DepositSidebarProps) {
+export function DepositSidebar({ steps, onStepClick, onSaveDraft }: DepositSidebarProps) {
   const totalMeaningfulSteps = steps.length - 1;
   const completedMeaningfulSteps = steps
-    .slice(0, totalMeaningfulSteps) // Get all steps except the last one
+    .slice(0, totalMeaningfulSteps) 
     .filter((s) => s.status === "completed").length;
 
   const progressValue =
     totalMeaningfulSteps > 0
       ? (completedMeaningfulSteps / totalMeaningfulSteps) * 100
       : 0;
+
+  const handleSave = () => {
+    onSaveDraft();
+    toast.success("Draft saved successfully to the local storage", {
+      position: "bottom-left"
+    });
+  };
 
   return (
     <aside className="w-[350px] bg-gradient-deposit-sidebar border-r p-6 px-4">
@@ -62,27 +70,22 @@ export function DepositSidebar({ steps, onStepClick }: DepositSidebarProps) {
                 variant={"outline"}
                 className="border-0"
                 aria-label="Save data"
-                onClick={() => 
-                  toast.success("Data saved", {
-                    position: "top-center"
-                  }
-                )}
+                onClick={handleSave}
               >
                 <SaveIcon />
               </Button>
             </TooltipTrigger>
             <TooltipContent variant="light">
-              <p>Save data</p>
+              <p>Save draft</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
-      
 
       <div className="mt-6 space-y-1">
         <Progress
           value={progressValue}
-          className="h-2" // Standard shadcn progress
+          className="h-2"
           aria-label={`${Math.round(progressValue)}% complete`}
         />
         <p className="text-sm text-white/90">
@@ -94,8 +97,7 @@ export function DepositSidebar({ steps, onStepClick }: DepositSidebarProps) {
         <ul className="space-y-2">
           {steps.map((step, index) => {
             const config = statusConfig[step.status];
-            // const Icon = config.icon;
-
+            
             return (
               <li key={step.id}>
                 <Button
@@ -112,7 +114,7 @@ export function DepositSidebar({ steps, onStepClick }: DepositSidebarProps) {
                 >
                   <div className="w-full flex items-center justify-between">
                     <span className="text-base font-medium">{step.name}</span>
-                    {step.totalFields > 0 && (
+                    {step.totalFields > 0 && step.name != "Experiments" && (
                       <span className="text-xs font-subheading">
                         {step.completedFields}/{step.totalFields}
                       </span>
@@ -127,4 +129,3 @@ export function DepositSidebar({ steps, onStepClick }: DepositSidebarProps) {
     </aside>
   );
 }
-

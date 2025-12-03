@@ -7,6 +7,16 @@ import {
   type DepositFormData,
 } from "@/lib/validators/depositSchema";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DepositSidebar, type StepStatus } from "./DepositSidebar";
 import { Button } from "@/components/ui/button";
 
@@ -15,6 +25,9 @@ import { useNavigate } from "react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { steps } from "@/components/forms/deposit/steps/stepsConfig"
+import ScrollToTop from "@/components/shared/ScrollToTop";
+import { useDepositPersistence } from "@/hooks/useDepositPersistance";
+import { administrativeDefaultValues, experimentDefaultValues, systemInformationDefaultValues } from "@/lib/constants/depositSchema";
 
 const isFieldFilled = (value: unknown): boolean => {
   if (Array.isArray(value)) {
@@ -41,47 +54,19 @@ export function DepositLayout() {
     return map;
   });
 
-  const methods = useForm({
+const methods = useForm({
     resolver: zodResolver(depositFormSchema),
     defaultValues: {
-      basicInfo: {
-        title: "",
-        description: "",
-        license: "",
-        access: "",
-        affiliations: [],
-        tags: [],
-        creators: [],
-        fundingReference: [],
-        objectIdentifiers: [],
-      },
-      fileIdentification: {
-        fileName: "",
-        fileDescription: "",
-        fileAuthors: [],
-        simulationYear: undefined,
-        doi: "",
-      },
-      mainInformation: {
-        simulationType: "",
-        forceField: "",
-        simulationLength: undefined,
-        simulationTimeStep: undefined,
-        statisticalEnsemble: "",
-        referenceTemperature: [],
-        referencePressure: [],
-        boxSizeAndShape: undefined,
-        molecules: [],
-        freeEnergyCalculation: undefined,
-        umbrellaSampling: undefined,
-        awhAdaptiveBiasing: undefined,
-      },
-      detailedInformation: {
-        // All optional, can be empty
+      administrative: administrativeDefaultValues,
+      systemInformation: systemInformationDefaultValues,
+      experiments: {
+        experiments: [{ ...experimentDefaultValues }],
       },
     },
     mode: "onSubmit",
   });
+
+  const { hasSavedData, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
 
   const { handleSubmit, trigger, control } = methods;
 
@@ -192,8 +177,7 @@ export function DepositLayout() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const processForm: SubmitHandler<DepositFormData> = (_data) => {  {/* TODO: use in the deposition */}
+  const processForm: SubmitHandler<DepositFormData> = (data) => {  {/* TODO: use in the deposition */}
     setStepStatusMap((prevMap) => {
       const newMap = { ...prevMap };
       steps.forEach((step) => {
@@ -201,6 +185,10 @@ export function DepositLayout() {
       });
       return newMap;
     });
+
+    discardDraft();
+
+    console.log("Data: ", data)
 
     navigate("/deposition-success");
   };
@@ -250,18 +238,44 @@ export function DepositLayout() {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex min-h-screen">
-        <DepositSidebar steps={sidebarSteps} onStepClick={handleSidebarClick} />
 
-        <main className="flex-1 p-8 md:p-12">
+      <AlertDialog open={hasSavedData}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore unsaved draft?</AlertDialogTitle>
+            <AlertDialogDescription>
+              We found a previously saved draft of your deposition. 
+              Would you like to restore it or start fresh?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={discardDraft} size={"md"}>Start Fresh</AlertDialogCancel>
+            <AlertDialogAction onClick={restoreDraft} size={"md"}>Restore Draft</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="flex min-h-screen">
+        <DepositSidebar
+          steps={sidebarSteps}
+          onStepClick={handleSidebarClick}
+          onSaveDraft={saveDraft}
+        />
+
+        <main className="flex-1 p-6">
           <form
             onSubmit={handleSubmit(processForm, onFormError)}
             className="space-y-8"
           >
             <h2 className="font-heading2 tracking-tight">{stepName}</h2>
 
-            <div className="w-2xl">
+            <div className="w-2xl relative">
               <ActiveStepComponent handleStepClick={handleSidebarClick} />
+              <div className="hidden xl:block absolute left-full top-0 ml-8 h-full w-12 pointer-events-none">
+                <div className="sticky top-[85vh] pointer-events-auto">
+                   <ScrollToTop />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-between pt-4 w-2xl">

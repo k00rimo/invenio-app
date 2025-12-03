@@ -52,7 +52,7 @@ export function StringArrayInput<T extends FieldValues>({
   const arrayError = get(errors, name);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <FormLabel required={required}>{label}</FormLabel>
       {description && <FormDescription>{description}</FormDescription>}
       <ul className="space-y-3">

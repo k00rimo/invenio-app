@@ -1,9 +1,14 @@
 import { z } from "zod";
 
-// Basic regex for ORCID iD. A more robust one would be very complex.
+// Basic regex for ORCID iD.
 const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
 
-// --- Reusable Array Schemas ---
+// --- Reusable Shared Schemas ---
+
+const optionalPositiveNumber = z.preprocess(
+  (val) => (val === "" || val === null || val === undefined ? undefined : Number(val)),
+  z.number().positive({ message: "Must be positive" }).optional()
+);
 
 export const creatorSchema = z.object({
   name: z.string().min(1, { message: "Creator name is required." }),
@@ -12,136 +17,87 @@ export const creatorSchema = z.object({
     .string()
     .regex(orcidRegex, { message: "Invalid ORCID iD format." })
     .optional()
-    .or(z.literal("")), // Allow empty string
+    .or(z.literal("")),
 });
-export type Creator = z.infer<typeof creatorSchema>;
 
 export const fundingReferenceSchema = z.object({
   funderName: z.string().min(1, { message: "Funder name is required." }),
   funderIdentifier: z.string().optional(),
   awardNumber: z.string().optional(),
 });
-export type FundingReference = z.infer<typeof fundingReferenceSchema>;
 
 export const objectIdentifierSchema = z.object({
   identifier: z.string().min(1, { message: "Identifier is required." }),
-  identifierType: z
-    .string()
-    .min(1, { message: "Identifier type is required." }),
+  identifierType: z.string().min(1, { message: "Identifier type is required." }),
 });
-export type ObjectIdentifier = z.infer<typeof objectIdentifierSchema>;
 
-// --- Step 1: Basic Info ---
+// ==========================================
+// SECTION 1: ADMINISTRATIVE (Formerly Basic Info)
+// ==========================================
 
-export const basicInfoSchema = z.object({
+export const administrativeSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
-  description: z
-    .string()
-    .min(10, { message: "Description must be at least 10 characters." }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
   license: z.string().min(1, { message: "Please select a license." }),
   access: z.string().min(1, { message: "Please select access rights." }),
   affiliations: z
-    .array(z.string().min(3, {
-      error: "Affiliation must be at least 3 characters."
-    }))
-    .min(1, {
-      error: "At least one affiliation is required."
-    }),
+    .array(z.string().min(3, { message: "Affiliation must be at least 3 characters." }))
+    .min(1, { message: "At least one affiliation is required." }),
   tags: z
-    .array(z.string().min(1, {
-      error: "Tag has must be at least 1 character."
-    }))
-    .min(1, {
-      error: "At least one tag is required"
-    }),
-  creators: z.array(creatorSchema).min(1, {
-    message: "At least one creator is required.",
-  }),
+    .array(z.string().min(1))
+    .min(1, { message: "At least one tag is required" }),
+  creators: z.array(creatorSchema).min(1, { message: "At least one creator is required." }),
   fundingReference: z.array(fundingReferenceSchema).optional(),
   objectIdentifiers: z.array(objectIdentifierSchema).optional(),
 });
 
-export const basicInfoFields = Object.keys(
-  basicInfoSchema.shape,
-) as (keyof z.infer<typeof basicInfoSchema>)[];
+// ==========================================
+// SECTION 2: SYSTEM INFORMATION
+// ==========================================
 
-// --- File & Upload Info ---
+const simulationEngineSchema = z.object({
+  name: z.string().min(1, { message: "Engine name is required (e.g., GROMACS)." }).optional(),
+  version: z.string().min(1, { message: "Version is required." }).optional(),
+  build: z.string().optional(),
+});
 
-export const fileIdentificationSchema = z.object({
-  // Note: We don't validate the file upload itself in Zod,
-  // but we validate its metadata.
-  fileName: z.string().min(1, { message: "File name is required." }),
-  fileDescription: z.string().optional(),
-  fileAuthors: z
-    .array(z.string().min(1))
-    .min(1, { message: "At least one file author is required." }), // Simple string array
-  simulationYear: z.coerce
+export const systemInformationSchema = z.object({
+  systemFiles: z
+    .array(z.any()) 
+    .min(1, { message: "Upload at least one system file (.gro, .top)." }),
+
+  // -- Molecular System Composition --
+  initialStructureSource: z.string().min(1, { message: "Source is required (e.g., PDB ID)." }),
+  solventModel: z.string().optional(), // e.g., TIP3P
+  proteinModel: z.string().optional(), // e.g., AMBER99SB
+  ligandModel: z.string().optional(),  // e.g., GAFF
+
+  // -- Size & Dimensions --
+  systemSize: z.coerce
     .number()
     .int()
-    .min(1900, { message: "Year must be after 1900." })
-    .max(new Date().getFullYear() + 1, {
-      message: "Year cannot be in the future.",
-    }),
-  doi: z.string().optional(),
-});
+    .positive({ message: "Number of atoms must be positive." }),
+  
+  // Assuming Box Size refers to Volume or specific magnitude
+  boxSize: z.coerce.number().positive().optional(), 
+  
+  boxDimensions: z.object({
+    x: optionalPositiveNumber,
+    y: optionalPositiveNumber,
+    z: optionalPositiveNumber,
+  }),
 
-export const fileIdentificationFields = Object.keys(
-  fileIdentificationSchema.shape,
-) as (keyof z.infer<typeof fileIdentificationSchema>)[];
-
-// --- Main Simulation Info ---
-
-export const mainInformationSchema = z.object({
-  simulationType: z
-    .string()
-    .min(1, { message: "Simulation type is required." }),
+  // -- Force Field & Parametrization --
   forceField: z.string().min(1, { message: "Force field is required." }),
-  simulationLength: z.coerce
-    .number({ message: "Expected value lol."})
-    .positive({ message: "Must be a positive number." }),
-  simulationTimeStep: z.coerce
-    .number()
-    .positive({ message: "Must be a positive number." }),
-  statisticalEnsemble: z
-    .string()
-    .min(1, { message: "Ensemble is required." }),
-  referenceTemperature: z.coerce
-    .number({ error: "Must be a number.", })
-    .array()
-    .min(1, { message: "At least one temperature is required." }),
-  referencePressure: z
-    .array(z.array(z.coerce.number()))
-    .optional()
-    .nullable(), // For Matrix type
-  boxSizeAndShape: z.coerce
-    .number()
-    .positive({ message: "Must be a positive number." }),
-  molecules: z
-    .array(
-      z.object({
-        name: z.string().min(1, { message: "Write at least one character" }),
-        count: z.coerce.number().int().positive(),
-      }),
-    )
-    .min(1, { message: "At least one molecule is required." }),
-  freeEnergyCalculation: z.string().min(1, { message: "Required." }),
-  umbrellaSampling: z.boolean(),
-  awhAdaptiveBiasing: z.boolean(),
+  parametrizationMethod: z.string().min(1, { message: "Method is required." }),
+
+  // -- Engine --
+  simulationEngine: simulationEngineSchema,
 });
 
-export const mainInformationFields = Object.keys(
-  mainInformationSchema.shape,
-) as (keyof z.infer<typeof mainInformationSchema>)[];
-
-// --- Detailed Simulation Info ---
-
-const vanDerWaalsSchema = z.object({
-  rvdw: z.coerce.number().optional(),
-  vdwType: z.string().optional(),
-  dispcorr: z.string().optional(),
-  rvdwSwitch: z.coerce.number().optional(),
-  vdwModifier: z.string().optional(),
-});
+// ==========================================
+// SECTION 3: EXPERIMENTS
+// ==========================================
 
 const barostatSchema = z.object({
   pcoupl: z.string().optional(),
@@ -160,46 +116,66 @@ const thermostatSchema = z.object({
   nsttcouple: z.coerce.number().int().optional(),
 });
 
-const neighbourListSchema = z.object({
-  pbc: z.string().optional(),
-  rlist: z.coerce.number().optional(),
-  nstlist: z.coerce.number().int().optional(),
-  cutoffScheme: z.string().optional(),
+export const experimentEntrySchema = z.object({
+  // Unique ID for UI rendering keys (not necessarily sent to backend)
+  id: z.string().optional(), 
+  
+  name: z.string().min(1, { message: "Experiment name is required." }),
+
+  // -- Files (.tpr, .trj, .mdp) --
+  experimentFiles: z
+    .array(z.any())
+    .min(1, { message: "Upload relevant experiment files." }),
+
+  // -- Thermostat / Barostat --
+  thermostat: thermostatSchema,
+  barostat: barostatSchema,
+
+  // -- Numerical Settings --
+  timeStep: z.coerce
+    .number()
+    .positive({ message: "Time step must be positive (fs)." }),
+  
+  constraintScheme: z.string().optional(), // e.g., LINCS, SHAKE
+
+  // -- Cutoffs --
+  cutoffs: z.object({
+    vdw: optionalPositiveNumber,
+    coulomb: optionalPositiveNumber,
+  }),
+
+  // -- Advanced --
+  pmeSettings: z.string().optional(),
+  randomSeed: z.coerce.number().int().optional(),
+  
+  // -- Duration --
+  length: z.coerce.number().positive({ message: "Simulation length is required." }),
+  outputCadence: z.coerce.number().positive().optional(),
+  
+  restraintsApplied: z.boolean().default(false),
 });
 
-const electrostaticSchema = z.object({
-  coulombtype: z.string().optional(),
-  rcoulomb: z.coerce.number().optional(),
-  epsilonR: z.coerce.number().optional(),
-  epsilonRf: z.coerce.number().optional(),
-  coulombModifier: z.string().optional(),
+// The Experiments section is an array of the entry schema
+export const experimentsSchema = z.object({
+  experiments: z
+    .array(experimentEntrySchema)
+    .min(1, { message: "At least one experiment must be defined." }),
 });
 
-export const detailedInformationSchema = z.object({
-  nstcomm: z.coerce.number().int().optional(),
-  commMode: z.string().optional(),
-  lincsIter: z.coerce.number().int().optional(),
-  lincsOrder: z.coerce.number().int().optional(),
-  fourierspacing: z.coerce.number().optional(),
-  constraintAlgorithm: z.string().optional(),
-  vanDerWaals: vanDerWaalsSchema.optional(),
-  barostat: barostatSchema.optional(),
-  thermostat: thermostatSchema.optional(),
-  neighbourList: neighbourListSchema.optional(),
-  electrostatic: electrostaticSchema.optional(),
-});
-
-export const detailedInformationFields = Object.keys(
-  detailedInformationSchema.shape,
-) as (keyof z.infer<typeof detailedInformationSchema>)[];
-
-// --- Master Schema ---
+// ==========================================
+// MASTER SCHEMA
+// ==========================================
 
 export const depositFormSchema = z.object({
-  basicInfo: basicInfoSchema,
-  fileIdentification: fileIdentificationSchema,
-  mainInformation: mainInformationSchema,
-  detailedInformation: detailedInformationSchema.optional(),
+  administrative: administrativeSchema,
+  systemInformation: systemInformationSchema,
+  experiments: experimentsSchema,
 });
 
 export type DepositFormData = z.infer<typeof depositFormSchema>;
+export type ExperimentEntry = z.infer<typeof experimentEntrySchema>;
+
+// Helper arrays for UI iterators if needed
+export const administrativeFields = Object.keys(administrativeSchema.shape) as (keyof typeof administrativeSchema.shape)[];
+export const systemInfoFields = Object.keys(systemInformationSchema.shape) as (keyof typeof systemInformationSchema.shape)[];
+

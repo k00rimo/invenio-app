@@ -1,5 +1,9 @@
 // --- Basic Info Options ---
 
+import AccessClosedIcon from "@/components/icons/AccessClosedIcon";
+import AccessOpenIcon from "@/components/icons/AccessOpenIcon";
+import AccessRestrictedIcon from "@/components/icons/AccessRestrictedIcon";
+
 export const licenseOptions = [
   {
     value: "apache-2.0",
@@ -44,16 +48,19 @@ export const accessOptions = [
     value: "open",
     label: "Open",
     description: "The dataset will be publicly available.",
+    icon: AccessOpenIcon
   },
   {
     value: "restricted",
     label: "Restricted",
     description: "Access to the dataset will be restricted.",
+    icon: AccessRestrictedIcon
   },
   {
     value: "closed",
     label: "Closed",
     description: "The dataset will be closed access.",
+    icon: AccessClosedIcon
   },
 ];
 
