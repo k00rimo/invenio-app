@@ -19,6 +19,7 @@ import { deleteCommunity } from "@/api/community";
 import { useAuthAction } from "@/hooks/useAuthorization";
 import { useQueryClient } from "@tanstack/react-query";
 import LoadingComponent from "@/components/shared/LoadingComponent";
+import QueryErrorComponent from "@/components/shared/QueryErrorComponent";
 
 const CommunityDetailPage = () => {
   const { id } = useParams();
@@ -49,7 +50,7 @@ const CommunityDetailPage = () => {
   }
 
   if (isError) {
-    return <div>Error fetching communities: {error?.message}</div>;
+    return <QueryErrorComponent error={error} />;
   }
 
   console.log(id);

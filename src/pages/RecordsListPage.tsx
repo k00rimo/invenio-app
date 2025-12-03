@@ -4,6 +4,7 @@ import ActiveFilters from "@/components/layout/recordsListPage/ActiveFilters";
 import RecordCard from "@/components/layout/recordsListPage/RecordCard";
 import RecordsPagination from "@/components/layout/recordsListPage/RecordsPagination";
 import LoadingComponent from "@/components/shared/LoadingComponent";
+import QueryErrorComponent from "@/components/shared/QueryErrorComponent";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -131,7 +132,7 @@ const RecordsListPage = () => {
           
           <div className="space-y-5 mb-8">
             {isLoading && <LoadingComponent />}
-            {isError && "Oops..."}
+            {isError && <QueryErrorComponent />}
             {!isLoading && !isError && data && data.projects.map((record, index) => (
               <RecordCard
                 key={index}

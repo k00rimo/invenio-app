@@ -1,6 +1,7 @@
 import CommunityCard from "@/components/layout/community/CommunityCard";
 import RecordsPagination from "@/components/layout/recordsListPage/RecordsPagination";
 import LoadingComponent from "@/components/shared/LoadingComponent";
+import QueryErrorComponent from "@/components/shared/QueryErrorComponent";
 import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
 import { useCommunities } from "@/hooks";
 import { DEFAULT_COMMUNITY_SIZE, QUERY_PARAM_PAGE, QUERY_PARAM_SIZE } from "@/lib/constants/constants";
@@ -29,7 +30,7 @@ const CommunityPage = () => {
   }
 
   if (isError) {
-    return <div>Error fetching communities: {error?.message}</div>;
+    return <QueryErrorComponent error={error} />;
   }
 
   const communities = data?.hits.hits ?? [];
