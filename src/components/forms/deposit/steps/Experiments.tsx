@@ -75,8 +75,8 @@ export function Experiments() {
                 hasError && "border-destructive/50 bg-destructive/10"
               )}
             >
-              <AccordionTrigger className="hover:no-underline py-4">
-                <span className="font-semibold text-lg">
+              <AccordionTrigger className="hover:no-underline py-4 truncate">
+                <span className="font-semibold text-lg truncate">
                   {index + 1}. {experimentName}
                 </span>
               </AccordionTrigger>
