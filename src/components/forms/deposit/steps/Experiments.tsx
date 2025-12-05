@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { get, useFieldArray, useFormContext } from "react-hook-form";
 import {
   FormControl,
@@ -33,11 +34,61 @@ import {
   pcouplTypeOptions,
   constraintAlgorithmOptions,
   refcoordScalingOptions,
-} from "@/lib/deposition/formOptions"; // Adjust path if necessary
-import { StringArrayInput } from "../StringArrayInput"; // Adjust path to where this component lives
+  simulationTypeOptions,
+  statisticalEnsembleOptions,
+  commModeOptions,
+  vdwTypeOptions,
+  vdwModifierOptions,
+  dispcorrOptions,
+  coulombTypeOptions,
+  coulombModifierOptions,
+  pbcOptions,
+  cutoffSchemeOptions,
+  freeEnergyCalculationOptions
+} from "@/lib/deposition/formOptions";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import FileUploader from "@/components/shared/FileUploader";
+import { experimentDefaultValues } from "@/lib/constants/depositSchema";
+
+// --- Matrix Helper Component ---
+const MatrixInput = ({ value, onChange, placeholder }: { value: number[][] | undefined, onChange: (val: number[][]) => void, placeholder?: string }) => {
+  const [text, setText] = React.useState(() => {
+    if (!value) return "";
+    return value.map(row => row.join(" ")).join(", ");
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setText(val);
+    
+    try {
+      if(!val.trim()) {
+        onChange([]);
+        return;
+      }
+      const rows = val.split(",").map(row => 
+        row.trim().split(/\s+/).map(num => {
+            const n = Number(num);
+            return isNaN(n) ? 0 : n;
+        })
+      );
+      onChange(rows);
+    } catch {
+      // Keep user typing
+    }
+  };
+
+  return (
+    <Input 
+      variant="deposition" 
+      value={text} 
+      onChange={handleChange} 
+      placeholder={placeholder || "e.g. 4.5e-5 (Isotropic)"} 
+    />
+  );
+};
+
 
 export function Experiments() {
   const { control, watch, formState: { errors } } = useFormContext<DepositFormData>();
@@ -46,7 +97,6 @@ export function Experiments() {
     name: "experiments.experiments",
   });
 
-  // Watch names to update Accordion titles dynamically
   const watchedExperiments = watch("experiments.experiments");
 
   return (
@@ -62,9 +112,7 @@ export function Experiments() {
         {fields.map((field, index) => {
           const experimentName =
             watchedExperiments?.[index]?.name || `Experiment ${index + 1}`;
-
-          const errorForThisItem = get(errors, `experiments.experiments.${index}`);
-          const hasError = !!errorForThisItem;
+          const hasError = !!get(errors, `experiments.experiments.${index}`);
 
           return (
             <AccordionItem
@@ -81,9 +129,11 @@ export function Experiments() {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="pt-4 pb-6 space-y-8 mx-1">
-                {/* 1. Experiment Identity & Files */}
+                
+                {/* === SECTION 1: GENERAL & FILES === */}
                 <div className="space-y-6">
-                  <div className="flex flex-col gap-6">
+                  {/* Changed: Removed grid-cols-2, now vertical stack */}
+                  <div className="grid grid-cols-1 gap-6">
                     <FormField
                       control={control}
                       name={`experiments.experiments.${index}.name`}
@@ -91,11 +141,7 @@ export function Experiments() {
                         <FormItem>
                           <FormLabel required>Experiment Name</FormLabel>
                           <FormControl>
-                            <Input
-                              variant="deposition"
-                              placeholder="e.g., NVT Equilibration"
-                              {...field}
-                            />
+                            <Input variant="deposition" placeholder="e.g., NVT Equilibration" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -103,359 +149,545 @@ export function Experiments() {
                     />
                     <FormField
                       control={control}
-                      name={`experiments.experiments.${index}.restraintsApplied`}
+                      name={`experiments.experiments.${index}.simulationType`}
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-4 bg-background">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Restraints Applied</FormLabel>
-                            <FormDescription>
-                              Were position restraints used?
-                            </FormDescription>
-                          </div>
+                        <FormItem>
+                          <FormLabel>Simulation Type</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger size={"md"}><SelectValue placeholder="Select type" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {simulationTypeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={control}
+                      name={`experiments.experiments.${index}.ensemble`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ensemble</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger size={"md"}><SelectValue placeholder="Select ensemble" /></SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {statisticalEnsembleOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
                         </FormItem>
                       )}
                     />
                   </div>
-
+                  
                   <div className="space-y-2">
                     <FormLabel required>Experiment Files</FormLabel>
-                    
                     <FileUploader 
                       name={`experiments.experiments.${index}.experimentFiles`}
                       label={`Upload .tpr, .trj, .mdp for "${experimentName}"`}
-                      accept={{
-                        'application/octet-stream': ['.tpr', '.trj', '.mdp', '.mp4'],
-                      }}
+                      accept={{ 'application/octet-stream': ['.tpr', '.trj', '.mdp', '.mp4'] }}
                     />
-
                     <FormField
                       control={control}
                       name={`experiments.experiments.${index}.experimentFiles`}
                       render={() => <FormMessage />}
                     />
                   </div>
-                </div>
 
-                <Separator />
-
-                {/* 2. Thermostat Settings (Nested Object) */}
-                <div className="space-y-4">
-                  <FormLabel className="text-base font-semibold">
-                    Thermostat
-                  </FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.thermostat.tcoupl`}
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>Coupling Algorithm</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-fit p-2">
-                                <SelectValue placeholder="Select tcoupl" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {tcouplOptions.map((option) => (
-                                <SelectItem
-                                  key={option.label}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.thermostat.nsttcouple`}
-                      render={({ field }) => (
-                        <FormItem className="flex flex-col gap-2">
-                          <FormLabel>nsttcouple (steps)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="md:col-span-2 lg:col-span-1">
-                      <StringArrayInput
-                        name={`experiments.experiments.${index}.thermostat.tauT`}
-                        label="tau-t (ps)"
-                        placeholder="e.g. 0.1"
-                        itemLabel="Val"
-                        inputType="number"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* 3. Barostat Settings (Nested Object) */}
-                <div className="space-y-4">
-                  <FormLabel className="text-base font-semibold">
-                    Barostat
-                  </FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.barostat.pcoupl`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coupling Algorithm</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger size={"md"}>
-                                <SelectValue placeholder="Select pcoupl" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {pcouplOptions.map((option) => (
-                                <SelectItem
-                                  key={option.label}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.barostat.pcoupltype`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coupling Type</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger size={"md"}>
-                                <SelectValue placeholder="Select Type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {pcouplTypeOptions.map((option) => (
-                                <SelectItem
-                                  key={option.label}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.barostat.tauP`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>tau-p (ps)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.barostat.refcoordScaling`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Ref Coord Scaling</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger size={"md"}>
-                                <SelectValue placeholder="Select Scaling" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {refcoordScalingOptions.map((option) => (
-                                <SelectItem
-                                  key={option.label}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* 4. Simulation Parameters & Cutoffs */}
-                <div className="space-y-4">
-                  <FormLabel className="text-base font-semibold">
-                    Parameters & Cutoffs
-                  </FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.timeStep`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel required>Time Step (fs)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              placeholder="2"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                   {/* Changed: Removed grid-cols-3, now vertical stack */}
+                  <div className="grid grid-cols-1 gap-6">
                     <FormField
                       control={control}
                       name={`experiments.experiments.${index}.length`}
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel required>Length (ns)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              placeholder="100"
-                              {...field}
-                            />
-                          </FormControl>
+                          <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
+                     <FormField
+                      control={control}
+                      name={`experiments.experiments.${index}.timeStep`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel required>Time Step (ps)</FormLabel>
+                          <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
                       control={control}
                       name={`experiments.experiments.${index}.outputCadence`}
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Output Cadence (ps)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              placeholder="10"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
+                          <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
                         </FormItem>
                       )}
                     />
+                  </div>
+                </div>
 
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.constraintScheme`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Constraint Scheme</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger size={"md"}>
-                                <SelectValue placeholder="Select Scheme" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {constraintAlgorithmOptions.map((option) => (
-                                <SelectItem
-                                  key={option.label}
-                                  value={option.value}
-                                >
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <Separator />
 
-                    <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.cutoffs.vdw`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>VdW Cutoff (nm)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              placeholder="1.2"
-                              {...field}
+                {/* === SECTION 2: PHYSICS (Thermostat & Barostat) === */}
+                <div className="flex flex-col gap-8">
+                    
+                    {/* Thermostat */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-base font-semibold">Thermostat</FormLabel>
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.thermostat.tcoupl`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Coupling Algorithm</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                    <SelectContent>{tcouplOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                             control={control}
+                             name={`experiments.experiments.${index}.thermostat.nsttcouple`}
+                             render={({ field }) => (
+                                 <FormItem>
+                                     <FormLabel>nsttcouple (steps)</FormLabel>
+                                     <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                 </FormItem>
+                             )}
+                        />
+                        
+                        {/* Nested Field Array for Temperature Groups */}
+                        <div className="space-y-2 pt-2">
+                            <FormLabel className="text-sm">Coupling Groups</FormLabel>
+                            <TemperatureGroups nestIndex={index} control={control} />
+                        </div>
+                    </div>
+
+                    {/* Barostat */}
+                    <div className="space-y-4">
+                        <FormLabel className="text-base font-semibold">Barostat</FormLabel>
+                        {/* Changed: Inner grids to vertical stack where appropriate, kept pairs */}
+                        <div className="grid grid-cols-1 gap-4">
+                             <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.barostat.pcoupl`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Coupling</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                        <SelectContent>{pcouplOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    </FormItem>
+                                )}
                             />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                            <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.barostat.pcoupltype`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Type</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                        <SelectContent>{pcouplTypeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.barostat.tauP`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>tau-p (ps)</FormLabel>
+                                        <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                             {/* Refcoord Scaling */}
+                             <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.barostat.refcoordScaling`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Ref Scaling</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                        <SelectContent>{refcoordScalingOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                         <FormField
+                             control={control}
+                             name={`experiments.experiments.${index}.barostat.compressibility`}
+                             render={({ field }) => (
+                                 <FormItem>
+                                     <FormLabel>Compressibility [bar^-1]</FormLabel>
+                                     <FormControl>
+                                        <MatrixInput value={field.value} onChange={field.onChange} placeholder="e.g. 4.5e-5" />
+                                     </FormControl>
+                                     <FormDescription className="text-xs">Matrix or scalar value</FormDescription>
+                                 </FormItem>
+                             )}
+                        />
+                         <FormField
+                             control={control}
+                             name={`experiments.experiments.${index}.barostat.refPressure`}
+                             render={({ field }) => (
+                                 <FormItem>
+                                     <FormLabel>Reference Pressure [bar]</FormLabel>
+                                     <FormControl>
+                                        <MatrixInput value={field.value} onChange={field.onChange} placeholder="e.g. 1.0" />
+                                     </FormControl>
+                                 </FormItem>
+                             )}
+                        />
+                    </div>
+                </div>
+
+                {/* === SECTION 3: INTERACTIONS & ALGORITHMS === */}
+                {/* Changed: Removed grid-cols-2 lg:grid-cols-3, now vertical stack */}
+                <div className="flex flex-col gap-8">
+                    {/* Electrostatics */}
+                    <div className="space-y-4">
+                        <h4 className="font-medium text-sm text-foreground/80 uppercase tracking-wider border-b pb-2">Electrostatics</h4>
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.electrostatics.coulombType`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Coulomb Type</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{coulombTypeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        {/* Coulomb Modifier */}
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.electrostatics.coulombModifier`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Modifier</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{coulombModifierOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.electrostatics.rcoulomb`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Cut-off</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                           <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.electrostatics.epsilonR`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Eps-R</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                        </div>
+                        {/* Epsilon RF & PME */}
+                        <div className="grid grid-cols-2 gap-4">
+                           <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.electrostatics.epsilonRf`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Eps-RF</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                           <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.electrostatics.fourierspacing`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Grid (nm)</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                        </div>
+                    </div>
+
+                    {/* VdW */}
+                    <div className="space-y-4">
+                        <h4 className="font-medium text-sm text-foreground/80 uppercase tracking-wider border-b pb-2">Van der Waals</h4>
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.vanDerWaals.vdwType`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>VdW Type</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{vdwTypeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        {/* VdW Modifier */}
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.vanDerWaals.vdwModifier`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Modifier</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{vdwModifierOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                           <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.vanDerWaals.rvdw`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Cut-off</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                           {/* Rvdw Switch */}
+                           <FormField
+                               control={control}
+                               name={`experiments.experiments.${index}.vanDerWaals.rvdwSwitch`}
+                               render={({ field }) => (
+                                   <FormItem>
+                                       <FormLabel>Switch</FormLabel>
+                                       <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                   </FormItem>
+                               )}
+                          />
+                        </div>
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.vanDerWaals.dispcorr`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Dispersion Correction</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{dispcorrOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+
+                    {/* Constraints & Neighbour */}
+                    <div className="space-y-4">
+                        <h4 className="font-medium text-sm text-foreground/80 uppercase tracking-wider border-b pb-2">Constraints & Neighbour</h4>
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.constraints.algorithm`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Constraint Algo</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{constraintAlgorithmOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                           <FormField
+                              control={control}
+                              name={`experiments.experiments.${index}.constraints.lincsIter`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Iter</FormLabel>
+                                  <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={control}
+                              name={`experiments.experiments.${index}.constraints.lincsOrder`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Order</FormLabel>
+                                  <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                </FormItem>
+                              )}
+                            />
+                        </div>
+
+                        <Separator className="my-2"/>
+
+                        {/* Neighbour List Settings */}
+                        <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.neighbourList.pbc`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>PBC</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{pbcOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={control}
+                            name={`experiments.experiments.${index}.neighbourList.cutoffScheme`}
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Cutoff Scheme</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                    <FormControl><SelectTrigger size={"md"}><SelectValue /></SelectTrigger></FormControl>
+                                    <SelectContent>{cutoffSchemeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                                </Select>
+                                </FormItem>
+                            )}
+                        />
+                         <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.neighbourList.rlist`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>rlist (nm)</FormLabel>
+                                    <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={control}
+                                name={`experiments.experiments.${index}.neighbourList.nstlist`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>nstlist</FormLabel>
+                                    <FormControl><Input type="number" variant="deposition" {...field} /></FormControl>
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <Separator />
+                
+                {/* === SECTION 4: ADVANCED === */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-foreground/80 uppercase tracking-wider">Advanced / Free Energy</h4>
+                  
+                  {/* Changed: Reorganized flex to grid/stack for better vertical alignment */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.commMode`}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>COM Mode</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                <SelectContent>{commModeOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                            </Select>
+                            </FormItem>
+                        )}
                     />
                     <FormField
-                      control={control}
-                      name={`experiments.experiments.${index}.cutoffs.coulomb`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coulomb Cutoff (nm)</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              variant="deposition"
-                              placeholder="1.2"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                        control={control}
+                        name={`experiments.experiments.${index}.nstcomm`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>nstcomm</FormLabel>
+                                <FormControl><Input type="number" variant="deposition" placeholder="100" {...field} /></FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.randomSeed`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Random Seed</FormLabel>
+                                <FormControl><Input type="number" variant="deposition" placeholder="-1" {...field} /></FormControl>
+                            </FormItem>
+                        )}
+                    />
+                      <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.freeEnergyCalculation`}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Free Energy Calc</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl><SelectTrigger size={"md"}><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                                <SelectContent>{freeEnergyCalculationOptions.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                            </Select>
+                            </FormItem>
+                        )}
+                    />
+                  </div>
+
+                  {/* Changed: Checkboxes from grid-cols-3 to flex-col */}
+                  <div className="flex flex-col gap-4 pt-2">
+                    <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.restraintsApplied`}
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-3 border rounded-md">
+                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Restraints Applied</FormLabel>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.umbrellaSampling`}
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-3 border rounded-md">
+                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                            <FormLabel className="font-normal cursor-pointer">Umbrella Sampling</FormLabel>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiments.experiments.${index}.awhAdaptiveBiasing`}
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-3 border rounded-md">
+                            <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                            <FormLabel className="font-normal cursor-pointer">AWH Adaptive Biasing</FormLabel>
+                            </FormItem>
+                        )}
                     />
                   </div>
                 </div>
@@ -482,20 +714,7 @@ export function Experiments() {
       <Button
         type="button"
         variant="outline"
-        onClick={() =>
-          append({
-            name: "",
-            experimentFiles: [],
-            // Initialize nested objects to avoid undefined errors
-            thermostat: { tauT: [] }, 
-            barostat: {},
-            cutoffs: { vdw: 0, coulomb: 0 },
-            timeStep: -1,
-            length: -1,
-            outputCadence: undefined,
-            restraintsApplied: false,
-          })
-        }
+        onClick={() => append(experimentDefaultValues)}
         className="w-full border-dashed py-6"
       >
         <Plus className="mr-2 h-4 w-4" />
@@ -503,4 +722,64 @@ export function Experiments() {
       </Button>
     </div>
   );
+}
+
+// Sub-component for Thermostat Groups Field Array
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function TemperatureGroups({ nestIndex, control }: { nestIndex: number; control: any }) {
+    const { fields, append, remove } = useFieldArray({
+      control,
+      name: `experiments.experiments.${nestIndex}.thermostat.groups`,
+    });
+  
+    return (
+      <div className="space-y-3">
+        {fields.map((item, k) => (
+          <div key={item.id} className="flex items-end gap-2">
+            <FormField
+              control={control}
+              name={`experiments.experiments.${nestIndex}.thermostat.groups.${k}.name`}
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormLabel className="text-xs text-muted-foreground">Group Name</FormLabel>
+                  <FormControl><Input placeholder="Protein" className="h-9" {...field} /></FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={control}
+              name={`experiments.experiments.${nestIndex}.thermostat.groups.${k}.tauT`}
+              render={({ field }) => (
+                <FormItem className="w-24">
+                  <FormLabel className="text-xs text-muted-foreground">tau-t</FormLabel>
+                  <FormControl><Input type="number" placeholder="0.1" className="h-9" {...field} /></FormControl>
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={control}
+              name={`experiments.experiments.${nestIndex}.thermostat.groups.${k}.refT`}
+              render={({ field }) => (
+                <FormItem className="w-24">
+                  <FormLabel className="text-xs text-muted-foreground">Ref T</FormLabel>
+                  <FormControl><Input type="number" placeholder="300" className="h-9" {...field} /></FormControl>
+                </FormItem>
+              )}
+            />
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-8 text-destructive" onClick={() => remove(k)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full border-dashed"
+          onClick={() => append({ name: "", tauT: undefined, refT: undefined })}
+        >
+          <Plus className="mr-2 h-3 w-3" /> Add Group
+        </Button>
+      </div>
+    );
 }

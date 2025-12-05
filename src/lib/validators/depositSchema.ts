@@ -1,14 +1,36 @@
 import { z } from "zod";
+import {
+  accessOptions,
+  licenseOptions,
+  simulationTypeOptions,
+  statisticalEnsembleOptions,
+  commModeOptions,
+  constraintAlgorithmOptions,
+  vdwTypeOptions,
+  vdwModifierOptions,
+  dispcorrOptions,
+  pcouplOptions,
+  pcouplTypeOptions,
+  refcoordScalingOptions,
+  tcouplOptions,
+  pbcOptions,
+  cutoffSchemeOptions,
+  coulombTypeOptions,
+  coulombModifierOptions,
+  freeEnergyCalculationOptions
+} from "../deposition/formOptions"; 
 
-// Basic regex for ORCID iD.
-const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
+// --- Helper to extract values for Zod enums ---
+// Zod expects a non-empty tuple [string, ...string[]]
+function getValues<T extends string>(options: readonly { value: T }[]): [T, ...T[]] {
+  return options.map((o) => o.value) as [T, ...T[]];
+}
 
 // --- Reusable Shared Schemas ---
 
 const optionalPositiveNumber = z.preprocess(
   (val) => {
     if (val === "" || val === null || val === undefined) return undefined;
-    
     const parsed = Number(val);
     return isNaN(parsed) ? val : parsed;
   },
@@ -16,6 +38,13 @@ const optionalPositiveNumber = z.preprocess(
    .positive({ message: "Must be positive" })
    .optional()
 );
+
+// Generic Matrix schema (used for pressure/compressibility tensors)
+const matrixSchema = z.array(z.array(z.coerce.number())).optional();
+
+const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/;
+
+// --- Administrative Sub-schemas ---
 
 export const creatorSchema = z.object({
   name: z.string().min(1, { message: "Creator name is required." }),
@@ -38,17 +67,85 @@ export const objectIdentifierSchema = z.object({
   identifierType: z.string().min(1, { message: "Identifier type is required." }),
 });
 
+// --- System Information Sub-schemas ---
+
+const moleculeSchema = z.object({
+  name: z.string().min(1, { message: "Molecule name is required" }),
+  count: z.coerce.number().int().positive({ message: "Count must be positive" }),
+  residues: z.array(z.string()).optional(), 
+});
+
+const simulationEngineSchema = z.object({
+  name: z.string().min(1, { message: "Engine name is required" }).optional(),
+  version: z.string().min(1, { message: "Version is required" }).optional(),
+  build: z.string().optional(),
+});
+
+// --- Experiments Sub-schemas (Physics Settings) ---
+
+const vanDerWaalsSchema = z.object({
+  vdwType: z.enum(getValues(vdwTypeOptions)).optional(),
+  rvdw: optionalPositiveNumber.describe("Cut-off distance (nm)"),
+  dispcorr: z.enum(getValues(dispcorrOptions)).optional(),
+  rvdwSwitch: optionalPositiveNumber.describe("Switching distance (nm)"),
+  vdwModifier: z.enum(getValues(vdwModifierOptions)).optional(),
+});
+
+const electrostaticSchema = z.object({
+  coulombType: z.enum(getValues(coulombTypeOptions)).optional(),
+  rcoulomb: optionalPositiveNumber.describe("Coulomb cut-off (nm)"),
+  epsilonR: optionalPositiveNumber.describe("Relative dielectric constant"),
+  epsilonRf: optionalPositiveNumber,
+  coulombModifier: z.enum(getValues(coulombModifierOptions)).optional(),
+  // PME specific
+  fourierspacing: optionalPositiveNumber.describe("Grid spacing (nm)"),
+});
+
+const neighbourListSchema = z.object({
+  pbc: z.enum(getValues(pbcOptions)).optional(),
+  rlist: optionalPositiveNumber.describe("Cut-off distance for short-range (nm)"),
+  nstlist: z.coerce.number().int().optional(),
+  cutoffScheme: z.enum(getValues(cutoffSchemeOptions)).optional(),
+});
+
+const constraintSchema = z.object({
+  algorithm: z.enum(getValues(constraintAlgorithmOptions)).optional(),
+  lincsIter: z.coerce.number().int().optional(),
+  lincsOrder: z.coerce.number().int().optional(),
+});
+
+const thermostatSchema = z.object({
+  tcoupl: z.enum(getValues(tcouplOptions)).optional(),
+  nsttcouple: z.coerce.number().int().optional(),
+  groups: z.array(z.object({
+    name: z.string(),
+    tauT: z.coerce.number().optional().describe("Time constant (ps)"),
+    refT: z.coerce.number().optional().describe("Reference Temperature (K)")
+  })).optional(),
+});
+
+const barostatSchema = z.object({
+  pcoupl: z.enum(getValues(pcouplOptions)).optional(),
+  pcoupltype: z.enum(getValues(pcouplTypeOptions)).optional(),
+  tauP: optionalPositiveNumber.describe("Time constant (ps)"),
+  compressibility: matrixSchema.describe("Compressibility [bar^-1]"),
+  refPressure: matrixSchema.describe("Reference Pressure [bar]"),
+  refcoordScaling: z.enum(getValues(refcoordScalingOptions)).optional(),
+});
+
+
 // ==========================================
-// SECTION 1: ADMINISTRATIVE (Formerly Basic Info)
+// SECTION 1: ADMINISTRATIVE
 // ==========================================
 
 export const administrativeSchema = z.object({
   title: z.string().min(3, { message: "Title must be at least 3 characters." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
-  license: z.string().min(1, { message: "Please select a license." }),
-  access: z.string().min(1, { message: "Please select access rights." }),
+  publisher: z.string().optional().describe("Entity responsible for making the resource available"),
+  license: z.enum(getValues(licenseOptions), { message: "Please select a valid license." }),  
+  access: z.enum(getValues(accessOptions), { message: "Please select access rights." }),
   affiliations: z
-    .array(z.string().min(3, { message: "Affiliation must be at least 3 characters." }))
+    .array(z.string().min(3))
     .min(1, { message: "At least one affiliation is required." }),
   tags: z
     .array(z.string().min(1))
@@ -62,22 +159,19 @@ export const administrativeSchema = z.object({
 // SECTION 2: SYSTEM INFORMATION
 // ==========================================
 
-const simulationEngineSchema = z.object({
-  name: z.string().min(1, { message: "Engine name is required (e.g., GROMACS)." }).optional(),
-  version: z.string().min(1, { message: "Version is required." }).optional(),
-  build: z.string().optional(),
-});
-
 export const systemInformationSchema = z.object({
   systemFiles: z
     .array(z.any()) 
-    .min(1, { message: "Upload at least one system file (.gro, .top)." }),
+    .min(1, { message: "Upload at least one system file (.gro, .top, etc)." }),
 
   // -- Molecular System Composition --
   initialStructureSource: z.string().min(1, { message: "Source is required (e.g., PDB ID)." }),
-  solventModel: z.string().optional(), // e.g., TIP3P
-  proteinModel: z.string().optional(), // e.g., AMBER99SB
-  ligandModel: z.string().optional(),  // e.g., GAFF
+  molecules: z.array(moleculeSchema).optional().describe("List of molecules in the system"),
+
+  // -- Models --
+  solventModel: z.string().optional(),
+  proteinModel: z.string().optional(),
+  ligandModel: z.string().optional(),
 
   // -- Size & Dimensions --
   systemSize: z.coerce
@@ -85,14 +179,14 @@ export const systemInformationSchema = z.object({
     .int()
     .positive({ message: "Number of atoms must be positive." }),
   
-  // Assuming Box Size refers to Volume or specific magnitude
-  boxSize: z.coerce.number().positive().optional(), 
-  
   boxDimensions: z.object({
     x: optionalPositiveNumber,
     y: optionalPositiveNumber,
     z: optionalPositiveNumber,
-  }),
+    alpha: optionalPositiveNumber.optional(),
+    beta: optionalPositiveNumber.optional(),
+    gamma: optionalPositiveNumber.optional(),
+  }).describe("Size and Shape of simulation box"),
 
   // -- Force Field & Parametrization --
   forceField: z.string().min(1, { message: "Force field is required." }),
@@ -106,63 +200,49 @@ export const systemInformationSchema = z.object({
 // SECTION 3: EXPERIMENTS
 // ==========================================
 
-const barostatSchema = z.object({
-  pcoupl: z.string().optional(),
-  pcoupltype: z.string().optional(),
-  tauP: z.coerce.number().optional(),
-  compressibility: z.array(z.array(z.coerce.number())).optional().nullable(),
-  refcoordScaling: z.string().optional(),
-});
-
-const thermostatSchema = z.object({
-  tcoupl: z.string().optional(),
-  tauT: z.array(z.coerce.number()).optional(),
-  tcGrps: z
-    .object({ nr: z.coerce.number().int().optional(), name: z.string() })
-    .optional(),
-  nsttcouple: z.coerce.number().int().optional(),
-});
-
 export const experimentEntrySchema = z.object({
-  // Unique ID for UI rendering keys (not necessarily sent to backend)
-  id: z.string().optional(), 
+  id: z.string().optional(), // Internal UI ID
   
+  // -- General Run Info --
   name: z.string().min(1, { message: "Experiment name is required." }),
-
+  
+  // Updated to use options
+  simulationType: z.enum(getValues(simulationTypeOptions)).optional(),
+  ensemble: z.enum(getValues(statisticalEnsembleOptions)).optional(),
+  
   // -- Files (.tpr, .trj, .mdp) --
   experimentFiles: z
     .array(z.any())
     .min(1, { message: "Upload relevant experiment files." }),
 
-  // -- Thermostat / Barostat --
+  // -- Time & Duration --
+  length: z.coerce.number().positive({ message: "Length is required (ns)." }),
+  timeStep: z.coerce.number().positive({ message: "Time step must be positive (ps)." }), 
+  outputCadence: z.coerce.number().positive().optional(),
+
+  // -- Physics / Algorithms --
   thermostat: thermostatSchema,
   barostat: barostatSchema,
+  electrostatics: electrostaticSchema,
+  vanDerWaals: vanDerWaalsSchema,
+  neighbourList: neighbourListSchema,
+  constraints: constraintSchema,
 
-  // -- Numerical Settings --
-  timeStep: z.coerce
-    .number()
-    .positive({ message: "Time step must be positive (fs)." }),
+  // -- Advanced / Center of Mass --
+  nstcomm: z.coerce.number().int().optional(),
+  commMode: z.enum(getValues(commModeOptions)).optional(),
+
+  // -- Free Energy / Sampling --
+  // Using enum options "yes"/"no" instead of boolean to match options file
+  freeEnergyCalculation: z.enum(getValues(freeEnergyCalculationOptions)).optional(),
   
-  constraintScheme: z.string().optional(), // e.g., LINCS, SHAKE
-
-  // -- Cutoffs --
-  cutoffs: z.object({
-    vdw: optionalPositiveNumber,
-    coulomb: optionalPositiveNumber,
-  }),
-
-  // -- Advanced --
-  pmeSettings: z.string().optional(),
-  randomSeed: z.coerce.number().int().optional(),
-  
-  // -- Duration --
-  length: z.coerce.number().positive({ message: "Simulation length is required." }),
-  outputCadence: z.coerce.number().positive().optional(),
+  umbrellaSampling: z.boolean().optional(),
+  awhAdaptiveBiasing: z.boolean().optional(),
   
   restraintsApplied: z.boolean().default(false),
+  randomSeed: z.coerce.number().int().optional(),
 });
 
-// The Experiments section is an array of the entry schema
 export const experimentsSchema = z.object({
   experiments: z
     .array(experimentEntrySchema)

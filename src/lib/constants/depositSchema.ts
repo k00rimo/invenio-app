@@ -32,34 +32,67 @@ export const experimentDefaultValues = {
   name: "",
   experimentFiles: [], 
   
+  // -- General Settings --
+  simulationType: undefined,
+  ensemble: undefined,
+  length: 0, // Set to 0 so "positive" validation triggers if left untouched
+  timeStep: 0,
+  outputCadence: undefined,
+
+  // -- Physics Objects --
   thermostat: {
-    tcoupl: "",
-    tauT: [], 
-    tcGrps: { nr: undefined, name: "" }, 
+    tcoupl: undefined,
     nsttcouple: undefined,
+    groups: [], // Important: Initialize empty array for dynamic groups
   },
   
   barostat: {
-    pcoupl: "",
-    pcoupltype: "",
+    pcoupl: undefined,
+    pcoupltype: undefined,
     tauP: undefined,
-    compressibility: null,
-    refcoordScaling: "",
+    compressibility: undefined, // Will be handled by MatrixInput
+    refPressure: undefined,     // Will be handled by MatrixInput
+    refcoordScaling: undefined,
   },
 
-  timeStep: undefined, 
-  constraintScheme: "",
-
-  cutoffs: {
-    vdw: undefined, 
-    coulomb: undefined,
+  electrostatics: {
+    coulombType: undefined,
+    rcoulomb: undefined,
+    epsilonR: undefined,
+    epsilonRf: undefined,
+    coulombModifier: undefined,
+    fourierspacing: undefined,
   },
 
-  pmeSettings: "",
-  randomSeed: undefined,
+  vanDerWaals: {
+    vdwType: undefined,
+    rvdw: undefined,
+    dispcorr: undefined,
+    rvdwSwitch: undefined,
+    vdwModifier: undefined,
+  },
+
+  neighbourList: {
+    pbc: undefined,
+    rlist: undefined,
+    nstlist: undefined,
+    cutoffScheme: undefined,
+  },
+
+  constraints: {
+    algorithm: undefined,
+    lincsIter: undefined,
+    lincsOrder: undefined,
+  },
+
+  // -- Advanced --
+  nstcomm: undefined,
+  commMode: undefined,
+  freeEnergyCalculation: undefined,
   
-  length: undefined,
-  outputCadence: undefined,
+  umbrellaSampling: false,
+  awhAdaptiveBiasing: false,
   
   restraintsApplied: false,
+  randomSeed: undefined,
 };

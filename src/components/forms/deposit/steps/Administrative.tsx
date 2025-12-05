@@ -75,62 +75,85 @@ export function Administrative() {
 
       <FormField
         control={control}
-        name="administrative.license"
+        name="administrative.publisher"
         render={({ field }) => (
           <FormItem>
-            <FormLabel required>License</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger size={"md"}>
-                  <SelectValue placeholder="Select a license" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {licenseOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <FormLabel>Publisher</FormLabel>
+            <FormControl>
+              <Input
+                variant={"deposition"}
+                placeholder="Entity responsible for making the resource available"
+                {...field}
+              />
+            </FormControl>
             <FormDescription>
-              The license under which this dataset will be shared.
+              Entity responsible for making the resource available.
             </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      <FormField
-        control={control}
-        name="administrative.access"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel required>Access</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger size={"md"}>
-                  <SelectValue placeholder="Select access rights" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {accessOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    <span className="flex items-center gap-1">
-                      {<option.icon />}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
+          name="administrative.license"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel required>License</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger size={"md"}>
+                    <SelectValue placeholder="Select a license" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {licenseOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
                       {option.label}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormDescription>
-              Who will be able to access this dataset?
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                The license under which this dataset will be shared.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="administrative.access"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel required>Access</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger size={"md"}>
+                    <SelectValue placeholder="Select access rights" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {accessOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      <span className="flex items-center gap-1">
+                        {option.icon && <option.icon />}
+                        {option.label}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                Who will be able to access this dataset?
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       <Separator />
       
