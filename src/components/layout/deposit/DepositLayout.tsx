@@ -1,6 +1,6 @@
 "use client";
 
-import { FormProvider, useForm, useWatch, type FieldErrors, type SubmitHandler } from "react-hook-form";
+import { FormProvider, useForm, type FieldErrors, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   depositFormSchema,
@@ -17,33 +17,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { DepositSidebar, type StepStatus } from "./DepositSidebar";
+import { type StepStatus } from "./DepositSidebar"; // Type import only
+import { DepositSidebarManager } from "./DepositSidebarManager"; // Import the new manager
 import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
-import { steps } from "@/components/forms/deposit/steps/stepsConfig"
+import { steps } from "@/components/forms/deposit/steps/stepsConfig";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import { useDepositPersistence } from "@/hooks/useDepositPersistance";
 import { administrativeDefaultValues, experimentDefaultValues, systemInformationDefaultValues } from "@/lib/constants/depositSchema";
 
-const isFieldFilled = (value: unknown): boolean => {
-  if (Array.isArray(value)) {
-    return value.length > 0;
-  }
-
-  if (typeof value === "object" && value !== null) {
-    return Object.values(value).some(isFieldFilled);
-  }
-
-  return value !== undefined && value !== null && value !== "";
-};
-
 export function DepositLayout() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  
+  // We only keep track of the "Status" (Active/Error/Visited) here.
+  // The "Progress" (Content watching) is moved to DepositSidebarManager.
   const [stepStatusMap, setStepStatusMap] = useState<
     Record<number, StepStatus["status"]>
   >(() => {
@@ -54,7 +46,7 @@ export function DepositLayout() {
     return map;
   });
 
-const methods = useForm({
+  const methods = useForm({
     resolver: zodResolver(depositFormSchema),
     defaultValues: {
       administrative: administrativeDefaultValues,
@@ -67,38 +59,7 @@ const methods = useForm({
   });
 
   const { hasSavedData, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
-
-  const { handleSubmit, trigger, control } = methods;
-
-  const watchedValues = useWatch({ control });
-
-  // Derive the full StepStatus array to pass to the sidebar
-  const sidebarSteps: StepStatus[] = steps.map((step) => {
-    const status = stepStatusMap[step.id] || "waiting";
-
-    let completedFields = 0;
-    const totalStepFields = step.allFields.length;
-
-    if (step.schemaKey && totalStepFields > 0 && watchedValues) {
-      const stepValues = watchedValues[step.schemaKey as keyof DepositFormData];
-      if (stepValues) {
-        completedFields = step.allFields.filter((field) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const value = (stepValues as any)[field];
-          return isFieldFilled(value); // Use the recursive helper
-        }).length;
-      }
-    }
-
-    return {
-      id: step.id,
-      name: step.name,
-      status: status,
-      totalFields: totalStepFields,
-      completedFields: completedFields,
-    };
-  });
-
+  const { handleSubmit, trigger } = methods;
 
   const navigateToStep = async (
     targetStepIndex: number,
@@ -106,7 +67,6 @@ const methods = useForm({
   ) => {
     const { blockOnInvalid = false } = options;
 
-    // Don't navigate if clicking the same step or if index is out of bounds
     if (
       targetStepIndex === currentStep ||
       targetStepIndex < 0 ||
@@ -115,19 +75,16 @@ const methods = useForm({
       return;
     }
 
-    // Get configs and state for the *current* step
     const currentStepConfig = steps[currentStep];
-    const hasFilledFields = sidebarSteps[currentStep].completedFields > 0;
-
-    // Run Validation on the current step
+    const prevStatus = stepStatusMap[currentStepConfig.id];
+    
+    // Only validate if we are trying to move forward or the step was already touched
     let isValid = true;
-    if (currentStepConfig.schemaKey && hasFilledFields) {
-      isValid = await trigger(
+    if (currentStepConfig.schemaKey && prevStatus !== "waiting") {
+       // We trigger validation, but we don't watch values here.
+       isValid = await trigger(
         currentStepConfig.schemaKey as keyof DepositFormData,
-        {
-          // Only focus on error if we are blocking navigation
-          shouldFocus: blockOnInvalid,
-        },
+        { shouldFocus: blockOnInvalid }
       );
     }
 
@@ -149,12 +106,9 @@ const methods = useForm({
         newMap[targetStepId] = "active";
       }
 
+      // If leaving a step, mark it completed if valid, or error if not
       if (currentStepConfig.schemaKey) {
-        if (hasFilledFields) {
-          newMap[currentStepConfig.id] = isValid ? "completed" : "error";
-        } else if (prevMap[currentStepConfig.id] === "active") {
-          newMap[currentStepConfig.id] = "waiting";
-        }
+         newMap[currentStepConfig.id] = isValid ? "completed" : "error";
       }
       return newMap;
     });
@@ -177,7 +131,7 @@ const methods = useForm({
     }
   };
 
-  const processForm: SubmitHandler<DepositFormData> = (data) => {  {/* TODO: use in the deposition */}
+  const processForm: SubmitHandler<DepositFormData> = (data) => {
     setStepStatusMap((prevMap) => {
       const newMap = { ...prevMap };
       steps.forEach((step) => {
@@ -187,9 +141,7 @@ const methods = useForm({
     });
 
     discardDraft();
-
-    console.log("Data: ", data)
-
+    console.log("Data: ", data);
     navigate("/deposition-success");
   };
 
@@ -204,26 +156,17 @@ const methods = useForm({
           newMap[step.id] = prevMap[step.id];
           return;
         }
-
         const stepSchemaKey = step.schemaKey as keyof DepositFormData;
 
         if (errorKeys.includes(stepSchemaKey)) {
-          if (firstErrorStepIndex === -1) {
-            firstErrorStepIndex = i;
-          }
+          if (firstErrorStepIndex === -1) firstErrorStepIndex = i;
           newMap[step.id] = "error";
         } else {
-          // If no error, mark as completed (since submit was tried)
           newMap[step.id] = "completed";
         }
       });
-
-      // Mark the final 'submit' step as 'active' if submit fails
       const submitStep = steps[steps.length - 1];
-      if (submitStep) {
-        newMap[submitStep.id] = "active";
-      }
-
+      if (submitStep) newMap[submitStep.id] = "active";
       return newMap;
     });
 
@@ -238,7 +181,6 @@ const methods = useForm({
 
   return (
     <FormProvider {...methods}>
-
       <AlertDialog open={hasSavedData}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -256,10 +198,12 @@ const methods = useForm({
       </AlertDialog>
 
       <div className="flex min-h-screen">
-        <DepositSidebar
-          steps={sidebarSteps}
-          onStepClick={handleSidebarClick}
-          onSaveDraft={saveDraft}
+        {/* Swapped pure Sidebar for Manager */}
+        <DepositSidebarManager 
+            currentStep={currentStep}
+            stepStatusMap={stepStatusMap}
+            onStepClick={handleSidebarClick}
+            onSaveDraft={saveDraft}
         />
 
         <main className="flex-1 p-6">
