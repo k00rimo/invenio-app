@@ -58,7 +58,7 @@ export function DepositLayout() {
     mode: "onSubmit",
   });
 
-  const { hasSavedData, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
+  const { hasSavedData, savedDraftTitle, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
   const { handleSubmit, trigger } = methods;
 
   const navigateToStep = async (
@@ -185,9 +185,17 @@ export function DepositLayout() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Restore unsaved draft?</AlertDialogTitle>
-            <AlertDialogDescription>
-              We found a previously saved draft of your deposition. 
-              Would you like to restore it or start fresh?
+            <AlertDialogDescription className="space-y-2">
+              <span>
+                We found a previously saved draft of your deposition. 
+                Would you like to restore it or start fresh?
+              </span>
+
+              {savedDraftTitle && (
+                <span className="block mt-2 font-subheadline text-foreground">
+                  Draft: "{savedDraftTitle}"
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

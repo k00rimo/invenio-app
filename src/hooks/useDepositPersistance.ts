@@ -8,6 +8,7 @@ export function useDepositPersistence(
   methods: any
 ) {
   const [hasSavedData, setHasSavedData] = useState(false);
+  const [savedDraftTitle, setSavedDraftTitle] = useState<string | null>(null);
 
   useEffect(() => {
     const data = localStorage.getItem(STORAGE_KEY);
@@ -16,6 +17,11 @@ export function useDepositPersistence(
         const parsed = JSON.parse(data);
         if (Object.keys(parsed).length > 0) {
           setHasSavedData(true);
+
+          const title = parsed.administrative?.title;
+          if (title) {
+            setSavedDraftTitle(title);
+          }
         }
       } catch (e) {
         console.error("Failed to parse saved deposit draft", e);
@@ -28,6 +34,7 @@ export function useDepositPersistence(
     const data = methods.getValues();
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      setSavedDraftTitle(data.administrative?.title || null);
       return true;
     } catch (e) {
       console.error("Failed to save draft", e);
@@ -42,6 +49,7 @@ export function useDepositPersistence(
         const parsed = JSON.parse(data) as DepositFormData;
         methods.reset(parsed); 
         setHasSavedData(false);
+        setSavedDraftTitle(null);
       } catch (e) {
         console.error("Failed to restore draft", e);
       }
@@ -51,10 +59,12 @@ export function useDepositPersistence(
   const discardDraft = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setHasSavedData(false);
+    setSavedDraftTitle(null);
   }, []);
 
   return {
     hasSavedData,
+    savedDraftTitle,
     saveDraft,
     restoreDraft,
     discardDraft,
