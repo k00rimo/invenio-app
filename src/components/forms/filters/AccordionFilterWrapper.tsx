@@ -30,7 +30,7 @@ const AccordionFilterWrapper = ({
       defaultValue={defaultOpen ? accordionValue : undefined}
     >
       <AccordionItem value={accordionValue} className="border-b-0">
-        <AccordionTrigger className="py-1 text-sm font-input hover:no-underline items-center">
+        <AccordionTrigger className="py-1 text-gray-dark font-body-small hover:no-underline items-center">
           {title}
         </AccordionTrigger>
         <AccordionContent className="pt-2.5 px-2.5">

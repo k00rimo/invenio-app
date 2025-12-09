@@ -80,7 +80,7 @@ const ActiveFilters = ({ className }: ActiveFiltersProps) => {
           type="button"
           variant="outline"
           size="icon"
-          className="h-fit"
+          className="h-fit cursor-pointer hover:bg-destructive/30"
           onClick={handleClearAll}
           aria-label="Clear all active filters"
         >
@@ -99,7 +99,7 @@ const ActiveFilters = ({ className }: ActiveFiltersProps) => {
             type="button"
             variant={"ghost"}
             size="icon"
-            className="h-5 w-5 hover:bg-background"
+            className="h-5 w-5 hover:bg-background cursor-pointer"
             onClick={() => handleRemoveFilter(key, value)}
             aria-label={`Remove filter: ${label}`}
           >
