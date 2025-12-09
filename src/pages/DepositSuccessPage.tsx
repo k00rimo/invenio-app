@@ -5,18 +5,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 
 import { useNavigate } from "react-router";
+import Confetti from 'react-confetti'
+import { useEffect, useState } from "react";
 
 export default function DepositSuccessPage() {
-  // --- 2. Initialize the hook ---
   const navigate = useNavigate();
+  const [confettiCount, setConfettiCount] = useState(200);
 
-  // --- 3. Create a simple handler function ---
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setConfettiCount(0);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleReturnHome = () => {
     navigate("/");
   };
 
   return (
     <div className="flex items-center justify-center mt-16">
+      <Confetti
+        numberOfPieces={confettiCount}
+      />
+
       <Card className="w-full max-w-lg text-center shadow-lg">
         <CardHeader>
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
