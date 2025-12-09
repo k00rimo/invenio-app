@@ -8,8 +8,9 @@ import { createBrowserRouter, type RouteObject } from "react-router";
 import DepositPage from "@/pages/DepositPage";
 import DepositSuccessPage from "@/pages/DepositSuccessPage";
 import CommunityPage from "@/pages/CommunitiyPage";
-import CommunityCreatePage from "@/pages/CommunityCreatePage";
 import CommunityDetailPage from "@/pages/CommunityDetailPage";
+import CommunityFormPage from "@/pages/CommunityFormPage";
+import LoginPage from "@/pages/LoginPage";
 
 const routes: RouteObject[] = [
   {
@@ -19,6 +20,10 @@ const routes: RouteObject[] = [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "/login",
+        element: <LoginPage />,
       },
       {
         path: "/records-list",
@@ -41,7 +46,11 @@ const routes: RouteObject[] = [
           },
           {
             path: "new",
-            element: <CommunityCreatePage />,
+            element: <CommunityFormPage />,
+          },
+          {
+            path: ":id/edit",
+            element: <CommunityFormPage />,
           },
           {
             path: ":id",

@@ -19,14 +19,14 @@ const HeroSection = ({className}: HeroSectionProps) => {
     >
       <MoleculeIcon
         className={cn(
-          "absolute -left-0 -top-0 z-0 text-primary-medium-hover",  // TODO: change the color to a variable
+          "absolute left-0 top-0 z-0 text-primary-medium-hover",  // TODO: change the color to a variable
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"
       />
       <MoleculeIcon
         className={cn(
-          "absolute -bottom-0 -right-0 z-0 rotate-180 text-primary-medium",
+          "absolute bottom-0 right-0 z-0 rotate-180 text-primary-medium",
           "h-[400px] w-[400px]"
         )}
         aria-hidden="true"
@@ -42,7 +42,7 @@ const HeroSection = ({className}: HeroSectionProps) => {
             <h1 className="font-heading md:max-w-3/5">Repository of Computational Chemistry Experiments</h1>
             <p className="max-w-4xl text-gray-dark">This repository contains experiments from various organizations. You can run simulations on experiments, download metadata and explore what you need.</p>
           </div>
-          <SearchInputDeposition className="w-full"/>
+          <SearchInputDeposition className="hidden md:flex w-full"/>
         </div>
       </div>
     </section>

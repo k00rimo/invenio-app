@@ -1,15 +1,12 @@
 import {
-  basicInfoFields,
-  fileIdentificationFields,
-  mainInformationFields,
-  detailedInformationFields,
+  administrativeFields,
+  systemInfoFields,
   type DepositFormData,
 } from "@/lib/validators/depositSchema";
 
-import { BasicInfo } from "@/components/forms/deposit/steps/BasicInfo";
-import { Upload } from "@/components/forms/deposit/steps/Upload";
-import { MainInfo } from "@/components/forms/deposit/steps/MainInfo";
-import { DetailedInfo } from "@/components/forms/deposit/steps/DetailedInfo";
+import { Administrative } from "@/components/forms/deposit/steps/Administrative";
+import { SystemInformation } from "@/components/forms/deposit/steps/SystemInformation";
+import { Experiments } from "@/components/forms/deposit/steps/Experiments";
 import { Submit } from "@/components/forms/deposit/steps/Submit";
 import type { JSX } from "react";
 
@@ -24,34 +21,27 @@ export interface StepConfig {
 export const steps: StepConfig[] = [
   {
     id: 1,
-    name: "Basic Info",
-    component: BasicInfo,
-    schemaKey: "basicInfo",
-    allFields: basicInfoFields,
+    name: "Administrative",
+    component: Administrative,
+    schemaKey: "administrative",
+    allFields: administrativeFields, 
   },
   {
     id: 2,
-    name: "File & Upload Info",
-    component: Upload,
-    schemaKey: "fileIdentification",
-    allFields: fileIdentificationFields,
+    name: "System Information",
+    component: SystemInformation,
+    schemaKey: "systemInformation",
+    allFields: systemInfoFields, 
   },
   {
     id: 3,
-    name: "Main Simulation Info",
-    component: MainInfo,
-    schemaKey: "mainInformation",
-    allFields: mainInformationFields,
+    name: "Experiments",
+    component: Experiments,
+    schemaKey: "experiments",
+    allFields: ["experiments"], // Special handling in Review component likely needed for arrays
   },
   {
     id: 4,
-    name: "Detailed Info (Optional)",
-    component: DetailedInfo,
-    schemaKey: "detailedInformation",
-    allFields: detailedInformationFields,
-  },
-  {
-    id: 5,
     name: "Review & Submit",
     component: Submit,
     schemaKey: null,

@@ -18,7 +18,7 @@ export function CreatorArray() {
   const { control } = useFormContext<DepositFormData>();
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "basicInfo.creators",
+    name: "administrative.creators",
   });
 
   return (
@@ -36,7 +36,7 @@ export function CreatorArray() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-8">
               <FormField
                 control={control}
-                name={`basicInfo.creators.${index}.name`}
+                name={`administrative.creators.${index}.name`}
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel required>Creator Name</FormLabel>
@@ -54,7 +54,7 @@ export function CreatorArray() {
 
               <FormField
                 control={control}
-                name={`basicInfo.creators.${index}.affiliation`}
+                name={`administrative.creators.${index}.affiliation`}
                 render={({ field }) => (
                   <FormItem className="w-full">
                     <FormLabel required>Affiliation</FormLabel>
@@ -72,7 +72,7 @@ export function CreatorArray() {
             
               <FormField
                 control={control}
-                name={`basicInfo.creators.${index}.orcid`}
+                name={`administrative.creators.${index}.orcid`}
                 render={({ field }) => (
                   <FormItem className="">
                     <FormLabel>ORCID</FormLabel>
@@ -121,10 +121,10 @@ export function CreatorArray() {
 
       <Controller
         control={control}
-        name="basicInfo.creators"
+        name="administrative.creators"
         render={({ fieldState: { error } }) =>
           error ? (
-            <p className="text-sm font-medium text-destructive">{error.message}</p>
+            <p className="text-sm text-destructive">{error.message}</p>
           ) : <></>
         }
       />

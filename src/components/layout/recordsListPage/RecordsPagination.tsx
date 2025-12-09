@@ -48,20 +48,43 @@ const RecordsPagination = ({
     </PaginationItem>
   )
 
-  const renderPages = () => {
-    if (totalPages <= 4) {
-      return Array.from({ length: totalPages }, (_, i) => renderPageLink(i + 1))
+const renderPages = () => {
+    // Case 1: If total pages are 7 or fewer, just show them all.
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1).map(renderPageLink)
     }
 
-    const pages = [1, 2, 3]
-    const shouldShowEllipsis = page > 3 || totalPages > 4
+    // Case 2: Near the start (e.g., Page 1, 2, 3, or 4)
+    if (page <= 4) {
+      return [
+        ...[1, 2, 3, 4, 5].map(renderPageLink),
+        <PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>,
+        renderPageLink(totalPages),
+      ]
+    }
 
+    // Case 3: Near the end (e.g., Page 97, 98, 99, 100)
+    if (page >= totalPages - 3) {
+      return [
+        renderPageLink(1),
+        <PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>,
+        ...[totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages].map(renderPageLink),
+      ]
+    }
+
+    // Case 4: Somewhere in the middle
     return [
-      ...pages.map(renderPageLink),
-      shouldShowEllipsis && <PaginationEllipsis key="ellipsis" />,
+      renderPageLink(1),
+      <PaginationItem key="ellipsis-left"><PaginationEllipsis /></PaginationItem>,
+      renderPageLink(page - 1),
+      renderPageLink(page),
+      renderPageLink(page + 1),
+      <PaginationItem key="ellipsis-right"><PaginationEllipsis /></PaginationItem>,
       renderPageLink(totalPages),
-    ].filter(Boolean)
+    ]
   }
+
+  if (totalPages <= 1) return null
 
   return (
     <Pagination className={cn("", className)}>

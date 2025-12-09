@@ -10,7 +10,7 @@ type CommunityProps = {
 const CommunitySection = ({className}: CommunityProps) => {
 
   return (
-    <section className={cn("w-full bg-primary-light flex items-center justify-center gap-24 py-24 px-2.5", className)}>
+    <section className={cn("w-full bg-primary-light flex flex-col-reverse items-center justify-center gap-8 py-8 px-2 md:flex-row md:gap-24 md:py-24 md:px-8", className)}>
       
       <div className="w-fit p-2.5 space-y-4">
         <h2 className="font-heading2">Community</h2>
@@ -21,7 +21,7 @@ const CommunitySection = ({className}: CommunityProps) => {
           <Button size={"md"}>Join community</Button>
         </Link>
       </div>
-      <CommunitySectionIcon />
+      <CommunitySectionIcon className="w-60 h-60 md:w-auto md:h-auto" />
     </section>
   )
 }

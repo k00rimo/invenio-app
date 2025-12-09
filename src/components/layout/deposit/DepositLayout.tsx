@@ -1,36 +1,41 @@
 "use client";
 
-import { FormProvider, useForm, useWatch, type FieldErrors, type SubmitHandler } from "react-hook-form";
+import { FormProvider, useForm, type FieldErrors, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   depositFormSchema,
   type DepositFormData,
 } from "@/lib/validators/depositSchema";
 
-import { DepositSidebar, type StepStatus } from "./DepositSidebar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { type StepStatus } from "./DepositSidebar"; 
+import { DepositSidebarManager } from "./DepositSidebarManager"; 
 import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Loader2 } from "lucide-react";
 
-import { steps } from "@/components/forms/deposit/steps/stepsConfig"
-
-const isFieldFilled = (value: unknown): boolean => {
-  if (Array.isArray(value)) {
-    return value.length > 0;
-  }
-
-  if (typeof value === "object" && value !== null) {
-    return Object.values(value).some(isFieldFilled);
-  }
-
-  return value !== undefined && value !== null && value !== "";
-};
+import { steps } from "@/components/forms/deposit/steps/stepsConfig";
+import ScrollToTop from "@/components/shared/ScrollToTop";
+import { useDepositPersistence } from "@/hooks/useDepositPersistance";
+import { administrativeDefaultValues, experimentDefaultValues, systemInformationDefaultValues } from "@/lib/constants/depositSchema";
+import { depositData } from "@/api/deposition";
+import { toast } from "sonner";
 
 export function DepositLayout() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  
   const [stepStatusMap, setStepStatusMap] = useState<
     Record<number, StepStatus["status"]>
   >(() => {
@@ -44,76 +49,17 @@ export function DepositLayout() {
   const methods = useForm({
     resolver: zodResolver(depositFormSchema),
     defaultValues: {
-      basicInfo: {
-        title: "",
-        description: "",
-        license: "",
-        access: "",
-        affiliations: [],
-        tags: [],
-        creators: [],
-        fundingReference: [],
-        objectIdentifiers: [],
-      },
-      fileIdentification: {
-        fileName: "",
-        fileDescription: "",
-        fileAuthors: [],
-        simulationYear: undefined,
-        doi: "",
-      },
-      mainInformation: {
-        simulationType: "",
-        forceField: "",
-        simulationLength: undefined,
-        simulationTimeStep: undefined,
-        statisticalEnsemble: "",
-        referenceTemperature: [],
-        referencePressure: [],
-        boxSizeAndShape: undefined,
-        molecules: [],
-        freeEnergyCalculation: undefined,
-        umbrellaSampling: undefined,
-        awhAdaptiveBiasing: undefined,
-      },
-      detailedInformation: {
-        // All optional, can be empty
+      administrative: administrativeDefaultValues,
+      systemInformation: systemInformationDefaultValues,
+      experiments: {
+        experiments: [{ ...experimentDefaultValues }],
       },
     },
     mode: "onSubmit",
   });
 
-  const { handleSubmit, trigger, control } = methods;
-
-  const watchedValues = useWatch({ control });
-
-  // Derive the full StepStatus array to pass to the sidebar
-  const sidebarSteps: StepStatus[] = steps.map((step) => {
-    const status = stepStatusMap[step.id] || "waiting";
-
-    let completedFields = 0;
-    const totalStepFields = step.allFields.length;
-
-    if (step.schemaKey && totalStepFields > 0 && watchedValues) {
-      const stepValues = watchedValues[step.schemaKey as keyof DepositFormData];
-      if (stepValues) {
-        completedFields = step.allFields.filter((field) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const value = (stepValues as any)[field];
-          return isFieldFilled(value); // Use the recursive helper
-        }).length;
-      }
-    }
-
-    return {
-      id: step.id,
-      name: step.name,
-      status: status,
-      totalFields: totalStepFields,
-      completedFields: completedFields,
-    };
-  });
-
+  const { hasSavedData, savedDraftTitle, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
+  const { handleSubmit, trigger, formState: { isSubmitting } } = methods;
 
   const navigateToStep = async (
     targetStepIndex: number,
@@ -121,7 +67,6 @@ export function DepositLayout() {
   ) => {
     const { blockOnInvalid = false } = options;
 
-    // Don't navigate if clicking the same step or if index is out of bounds
     if (
       targetStepIndex === currentStep ||
       targetStepIndex < 0 ||
@@ -130,19 +75,14 @@ export function DepositLayout() {
       return;
     }
 
-    // Get configs and state for the *current* step
     const currentStepConfig = steps[currentStep];
-    const hasFilledFields = sidebarSteps[currentStep].completedFields > 0;
-
-    // Run Validation on the current step
+    const prevStatus = stepStatusMap[currentStepConfig.id];
+    
     let isValid = true;
-    if (currentStepConfig.schemaKey && hasFilledFields) {
-      isValid = await trigger(
+    if (currentStepConfig.schemaKey && prevStatus !== "waiting") {
+       isValid = await trigger(
         currentStepConfig.schemaKey as keyof DepositFormData,
-        {
-          // Only focus on error if we are blocking navigation
-          shouldFocus: blockOnInvalid,
-        },
+        { shouldFocus: blockOnInvalid }
       );
     }
 
@@ -165,11 +105,7 @@ export function DepositLayout() {
       }
 
       if (currentStepConfig.schemaKey) {
-        if (hasFilledFields) {
-          newMap[currentStepConfig.id] = isValid ? "completed" : "error";
-        } else if (prevMap[currentStepConfig.id] === "active") {
-          newMap[currentStepConfig.id] = "waiting";
-        }
+         newMap[currentStepConfig.id] = isValid ? "completed" : "error";
       }
       return newMap;
     });
@@ -186,23 +122,33 @@ export function DepositLayout() {
   };
 
   const handleSidebarClick = (clickedStepId: number) => {
+    if (isSubmitting) return; 
+
     const clickedStepIndex = steps.findIndex((s) => s.id === clickedStepId);
     if (clickedStepIndex !== -1) {
       navigateToStep(clickedStepIndex);
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const processForm: SubmitHandler<DepositFormData> = (_data) => {  {/* TODO: use in the deposition */}
-    setStepStatusMap((prevMap) => {
-      const newMap = { ...prevMap };
-      steps.forEach((step) => {
-        newMap[step.id] = "completed";
-      });
-      return newMap;
-    });
+  const processForm: SubmitHandler<DepositFormData> = async (data) => {
+    try {
+      await depositData(data);
 
-    navigate("/deposition-success");
+      setStepStatusMap((prevMap) => {
+        const newMap = { ...prevMap };
+        steps.forEach((step) => {
+          newMap[step.id] = "completed";
+        });
+        return newMap;
+      });
+
+      discardDraft();
+      navigate("/deposition-success");
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Submission Failed");
+    }
   };
 
   const onFormError = (errors: FieldErrors) => {
@@ -216,26 +162,17 @@ export function DepositLayout() {
           newMap[step.id] = prevMap[step.id];
           return;
         }
-
         const stepSchemaKey = step.schemaKey as keyof DepositFormData;
 
         if (errorKeys.includes(stepSchemaKey)) {
-          if (firstErrorStepIndex === -1) {
-            firstErrorStepIndex = i;
-          }
+          if (firstErrorStepIndex === -1) firstErrorStepIndex = i;
           newMap[step.id] = "error";
         } else {
-          // If no error, mark as completed (since submit was tried)
           newMap[step.id] = "completed";
         }
       });
-
-      // Mark the final 'submit' step as 'active' if submit fails
       const submitStep = steps[steps.length - 1];
-      if (submitStep) {
-        newMap[submitStep.id] = "active";
-      }
-
+      if (submitStep) newMap[submitStep.id] = "active";
       return newMap;
     });
 
@@ -250,18 +187,52 @@ export function DepositLayout() {
 
   return (
     <FormProvider {...methods}>
-      <div className="flex min-h-screen">
-        <DepositSidebar steps={sidebarSteps} onStepClick={handleSidebarClick} />
+      <AlertDialog open={hasSavedData}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore unsaved draft?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              {savedDraftTitle && (
+                <span className="block mt-1 font-subheadline text-foreground">
+                  Draft: "{savedDraftTitle}"
+                </span>
+              )}
 
-        <main className="flex-1 p-8 md:p-12">
+              <span>
+                We found a previously saved draft of your deposition. 
+                Would you like to restore it or start fresh?
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={discardDraft} size={"md"}>Start Fresh</AlertDialogCancel>
+            <AlertDialogAction onClick={restoreDraft} size={"md"}>Restore Draft</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="flex min-h-screen">
+        <DepositSidebarManager 
+            currentStep={currentStep}
+            stepStatusMap={stepStatusMap}
+            onStepClick={handleSidebarClick}
+            onSaveDraft={saveDraft}
+        />
+
+        <main className="flex-1 p-6">
           <form
             onSubmit={handleSubmit(processForm, onFormError)}
             className="space-y-8"
           >
             <h2 className="font-heading2 tracking-tight">{stepName}</h2>
 
-            <div className="w-2xl">
+            <div className="w-2xl relative">
               <ActiveStepComponent handleStepClick={handleSidebarClick} />
+              <div className="hidden xl:block absolute left-full top-0 ml-8 h-full w-12 pointer-events-none">
+                <div className="sticky top-[85vh] pointer-events-auto">
+                   <ScrollToTop />
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-between pt-4 w-2xl">
@@ -270,15 +241,22 @@ export function DepositLayout() {
                 variant="outline"
                 size={"md"}
                 onClick={handleBackClick}
-                disabled={currentStep === 0}
+                disabled={currentStep === 0 || isSubmitting} 
                 leftIcon={<ChevronLeftIcon />}
               >
                 Back
               </Button>
 
               {isLastStep ? (
-                <Button type="submit" size={"md"} variant={"secondary"}>
-                  Submit Deposition
+                <Button 
+                  type="submit" 
+                  size={"md"} 
+                  variant={"secondary"}
+                  // UI Feedback for loading state [!code ++]
+                  disabled={isSubmitting} 
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting ? "Submitting" : "Submit Deposition"}
                 </Button>
               ) : (
                 <Button
@@ -286,11 +264,20 @@ export function DepositLayout() {
                   size={"md"}
                   onClick={handleNextClick}
                   rightIcon={<ChevronRightIcon />}
+                  disabled={isSubmitting} // Disable next if currently submitting (edge case)
                 >
                   Next Step
                 </Button>
               )}
             </div>
+            {isSubmitting && (
+              <div className="flex gap-1 items-center text-destructive">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>
+                  This might take a while, do not close the window...
+                </span>
+              </div>
+            )}
           </form>
         </main>
       </div>

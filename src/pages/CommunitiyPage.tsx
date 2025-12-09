@@ -1,27 +1,40 @@
 import CommunityCard from "@/components/layout/community/CommunityCard";
-import RecordsPagination from "@/components/layout/records-list-page/RecordsPagination";
+import RecordsPagination from "@/components/layout/recordsListPage/RecordsPagination";
+import LoadingComponent from "@/components/shared/LoadingComponent";
+import QueryErrorComponent from "@/components/shared/QueryErrorComponent";
 import SearchInputDeposition from "@/components/shared/SearchInputDeposition";
-import { DEFAULT_COMMUNITY_SIZE, QUERY_PARAM_PAGE, QUERY_PARAM_SIZE } from "@/lib/constants";
+import { useCommunities } from "@/hooks";
+import { DEFAULT_COMMUNITY_SIZE, QUERY_PARAM_PAGE, QUERY_PARAM_SIZE } from "@/lib/constants/constants";
 import { cn } from "@/lib/utils";
+import type { CommunityQueryParams } from "@/types/mdpositTypes";
 import { PlusCircle } from "lucide-react";
 import { useSearchParams } from "react-router";
-
-const mockCommunities: {
-  name: string
-  description: string
-  slug: string
-}[] = [
-  { name: "Elixir", slug: "elixir", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
-  { name: "Ceitec", slug: "elixir", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
-  { name: "Very Very long community name", slug: "elixir", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
-  { name: "Very Very long community name", slug: "elixir", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
-  { name: "Very Very long community name", slug: "elixir", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat." },
-]
 
 const CommunityPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentSize = searchParams.get(QUERY_PARAM_SIZE) || DEFAULT_COMMUNITY_SIZE;
   const currentPage = Number(searchParams.get(QUERY_PARAM_PAGE) || 1);
+  const query = searchParams.get('q') || ''
+
+  const params: CommunityQueryParams = {
+    q: query || undefined,
+    page: currentPage,
+    size: currentSize,
+    sort: "newest",
+  };
+
+  const { data, isLoading, isError, error } = useCommunities(params);
+
+  if (isLoading) {
+    return <LoadingComponent />
+  }
+
+  if (isError) {
+    return <QueryErrorComponent error={error} />;
+  }
+
+  const communities = data?.hits.hits ?? [];
+  const communitiesCount = data?.hits.total ?? 0;
 
   const handlePageChange = (newPage: number) => {
     updateQueryParam(QUERY_PARAM_PAGE, String(newPage));
@@ -34,8 +47,8 @@ const CommunityPage = () => {
   };
 
   return (
-    <div className="self-center flex min-h-svh max-w-5xl flex-col items-center justify-center gap-2 mt-16">
-      <div className="space-y-8">
+    <div className="self-center flex min-h-svh w-4xl flex-col items-center justify-start gap-2 mt-16">
+      <div className="w-full space-y-8">
         <h1 className="font-heading mb-6">Communities</h1>
         <SearchInputDeposition
          secondaryBtnText="Create new"
@@ -46,19 +59,19 @@ const CommunityPage = () => {
 
         <div className={cn("sapce-y-4")}
         > 
-          {mockCommunities.map((item, index) => (
+          {communities.map((item, index) => (
             <CommunityCard
               key={index}
-              name={item.name}
+              name={item.metadata.title}
               slug={item.slug}
-              description={item.description}
+              description={item.metadata.description}
             />
           ))}
         </div>
 
         <RecordsPagination 
           page={currentPage}
-          recordsCount={30} // TODO: from fetched data
+          recordsCount={communitiesCount} // TODO: from fetched data
           recordsPerPage={Number(currentSize)}
           className="justify-end mb-8"
           onPageChange={handlePageChange}

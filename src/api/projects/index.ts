@@ -12,10 +12,16 @@ export const getProjects = async (
   queryParams: ProjectsQueryParams
 ): Promise<ProjectsResponse> => {
   try {
+    // TODO: remove this, when the api works
+    // just pass queryParams into the apiClient.get call
+    const params = {
+      sort: '{"_id":-1}',
+      ...queryParams
+    };
     const response: AxiosResponse<ProjectsResponse> = await apiClient.get(
       "/projects",
       {
-        params: queryParams,
+        params: params,
       }
     );
     return response.data;

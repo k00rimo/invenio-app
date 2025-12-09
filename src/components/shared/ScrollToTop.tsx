@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn, scrollToTop } from "@/lib/utils"
 import { ArrowUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { Button } from "../ui/button"
@@ -21,17 +21,14 @@ const ScrollToTop = ({
 
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [threshold])
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
+  }, [threshold])  
 
   return (
     <Button
       onClick={scrollToTop}
       aria-label="Jump to top"
       size="icon"
+      type="button"
       className={cn(
         "bg-primary text-background rounded-full size-10 shadow-md transition-all duration-300 ease-in-out",
         visible
