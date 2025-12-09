@@ -1,5 +1,5 @@
 import type { LoginPayload, LoginResponse, LogoutResponse } from "@/types/mdpositTypes";
-import apiClient from "../client";
+import { mdrepoClient } from "../client";
 import type { AxiosResponse } from "axios";
 
 
@@ -7,7 +7,7 @@ export const loginUser = async (
   payload: LoginPayload
 ): Promise<LoginResponse> => {
   try {
-    const response: AxiosResponse<LoginResponse> = await apiClient.post(
+    const response: AxiosResponse<LoginResponse> = await mdrepoClient.post(
       "/login",
       payload
     );
@@ -22,7 +22,7 @@ export const loginUser = async (
 export const logoutUser = async (
 ): Promise<LogoutResponse> => {
   try {
-    const response: AxiosResponse<LogoutResponse> = await apiClient.post(
+    const response: AxiosResponse<LogoutResponse> = await mdrepoClient.post(
       "/logout",
     );
     console.log("resposne logout", response)

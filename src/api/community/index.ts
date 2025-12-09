@@ -1,5 +1,5 @@
 import type { CommunityHit, CommunityQueryParams, CommunitySearchResponse, CreateCommunityPayload, RenameCommunityPayload, UpdateCommunityMetadataPayload } from "@/types/mdpositTypes";
-import apiClient from "../client";
+import { mdrepoClient } from "../client";
 import type { AxiosResponse } from "axios";
 
 
@@ -7,7 +7,7 @@ export const getCommunities = async (
   queryParams: CommunityQueryParams
 ): Promise<CommunitySearchResponse> => {
   try {
-    const response: AxiosResponse<CommunitySearchResponse> = await apiClient.get(
+    const response: AxiosResponse<CommunitySearchResponse> = await mdrepoClient.get(
       "/communities",
       {
         params: queryParams,
@@ -22,7 +22,7 @@ export const getCommunities = async (
 
 export const getCommunity = async (id: string): Promise<CommunityHit> => {
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.get(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.get(
       `/communities/${encodeURIComponent(id)}`,
     );
     return response.data;
@@ -36,7 +36,7 @@ export const createCommunity = async (
   payload: CreateCommunityPayload
 ): Promise<CommunityHit> => {
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.post(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.post(
       "/communities",
       payload
     );
@@ -52,7 +52,7 @@ export const updateCommunity = async (
   payload: UpdateCommunityMetadataPayload
 ): Promise<CommunityHit> => {
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.put(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.put(
       `/communities/${encodeURIComponent(id)}`,
       payload
     );
@@ -67,7 +67,7 @@ export const deleteCommunity = async (
   id:string,
 ): Promise<CommunityHit> => {
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.delete(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.delete(
       `/communities/${encodeURIComponent(id)}`,
     );
     return response.data;
@@ -85,7 +85,7 @@ export const uploadCommunityLogo = async (
   formData.append("logo", logo);
 
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.post(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.post(
       `/communities/${encodeURIComponent(id)}/logo`,
       formData
     );
@@ -101,7 +101,7 @@ export const renameCommunity = async (
   payload: RenameCommunityPayload
 ): Promise<CommunityHit> => {
   try {
-    const response: AxiosResponse<CommunityHit> = await apiClient.post(
+    const response: AxiosResponse<CommunityHit> = await mdrepoClient.post(
       `/communities/${encodeURIComponent(id)}/rename`,
       payload
     );

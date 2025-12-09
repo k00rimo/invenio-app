@@ -1,6 +1,6 @@
 import type { AxiosInstance } from "axios";
 import type { DepositFormData } from "@/lib/validators/depositSchema";
-import apiClient from "../client";
+import { mdrepoClient } from "../client";
 
 interface FileUploadMetadata {
   key: string;
@@ -64,7 +64,7 @@ export const depositData = async (
       },
     };
 
-    const createResponse = await apiClient.post(
+    const createResponse = await mdrepoClient.post(
       "/experiments/",
       initialPayload
     );
@@ -75,7 +75,7 @@ export const depositData = async (
     }
 
     await Promise.all(
-      allFilesToUpload.map((file) => uploadSingleFile(apiClient, recordId, file))
+      allFilesToUpload.map((file) => uploadSingleFile(mdrepoClient, recordId, file))
     );
 
     return {
