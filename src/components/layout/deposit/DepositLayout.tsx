@@ -17,25 +17,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { type StepStatus } from "./DepositSidebar"; // Type import only
-import { DepositSidebarManager } from "./DepositSidebarManager"; // Import the new manager
+import { type StepStatus } from "./DepositSidebar"; 
+import { DepositSidebarManager } from "./DepositSidebarManager"; 
 import { Button } from "@/components/ui/button";
 
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, Loader2 } from "lucide-react";
 
 import { steps } from "@/components/forms/deposit/steps/stepsConfig";
 import ScrollToTop from "@/components/shared/ScrollToTop";
 import { useDepositPersistence } from "@/hooks/useDepositPersistance";
 import { administrativeDefaultValues, experimentDefaultValues, systemInformationDefaultValues } from "@/lib/constants/depositSchema";
+import { depositData } from "@/api/deposition";
+import { toast } from "sonner";
 
 export function DepositLayout() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   
-  // We only keep track of the "Status" (Active/Error/Visited) here.
-  // The "Progress" (Content watching) is moved to DepositSidebarManager.
   const [stepStatusMap, setStepStatusMap] = useState<
     Record<number, StepStatus["status"]>
   >(() => {
@@ -59,7 +59,7 @@ export function DepositLayout() {
   });
 
   const { hasSavedData, savedDraftTitle, saveDraft, restoreDraft, discardDraft } = useDepositPersistence(methods);
-  const { handleSubmit, trigger } = methods;
+  const { handleSubmit, trigger, formState: { isSubmitting } } = methods;
 
   const navigateToStep = async (
     targetStepIndex: number,
@@ -78,10 +78,8 @@ export function DepositLayout() {
     const currentStepConfig = steps[currentStep];
     const prevStatus = stepStatusMap[currentStepConfig.id];
     
-    // Only validate if we are trying to move forward or the step was already touched
     let isValid = true;
     if (currentStepConfig.schemaKey && prevStatus !== "waiting") {
-       // We trigger validation, but we don't watch values here.
        isValid = await trigger(
         currentStepConfig.schemaKey as keyof DepositFormData,
         { shouldFocus: blockOnInvalid }
@@ -106,7 +104,6 @@ export function DepositLayout() {
         newMap[targetStepId] = "active";
       }
 
-      // If leaving a step, mark it completed if valid, or error if not
       if (currentStepConfig.schemaKey) {
          newMap[currentStepConfig.id] = isValid ? "completed" : "error";
       }
@@ -125,24 +122,33 @@ export function DepositLayout() {
   };
 
   const handleSidebarClick = (clickedStepId: number) => {
+    if (isSubmitting) return; 
+
     const clickedStepIndex = steps.findIndex((s) => s.id === clickedStepId);
     if (clickedStepIndex !== -1) {
       navigateToStep(clickedStepIndex);
     }
   };
 
-  const processForm: SubmitHandler<DepositFormData> = (data) => {
-    setStepStatusMap((prevMap) => {
-      const newMap = { ...prevMap };
-      steps.forEach((step) => {
-        newMap[step.id] = "completed";
-      });
-      return newMap;
-    });
+  const processForm: SubmitHandler<DepositFormData> = async (data) => {
+    try {
+      await depositData(data);
 
-    discardDraft();
-    console.log("Data: ", data);
-    navigate("/deposition-success");
+      setStepStatusMap((prevMap) => {
+        const newMap = { ...prevMap };
+        steps.forEach((step) => {
+          newMap[step.id] = "completed";
+        });
+        return newMap;
+      });
+
+      discardDraft();
+      navigate("/deposition-success");
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      toast.error("Submission Failed");
+    }
   };
 
   const onFormError = (errors: FieldErrors) => {
@@ -186,16 +192,16 @@ export function DepositLayout() {
           <AlertDialogHeader>
             <AlertDialogTitle>Restore unsaved draft?</AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
+              {savedDraftTitle && (
+                <span className="block mt-1 font-subheadline text-foreground">
+                  Draft: "{savedDraftTitle}"
+                </span>
+              )}
+
               <span>
                 We found a previously saved draft of your deposition. 
                 Would you like to restore it or start fresh?
               </span>
-
-              {savedDraftTitle && (
-                <span className="block mt-2 font-subheadline text-foreground">
-                  Draft: "{savedDraftTitle}"
-                </span>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -206,7 +212,6 @@ export function DepositLayout() {
       </AlertDialog>
 
       <div className="flex min-h-screen">
-        {/* Swapped pure Sidebar for Manager */}
         <DepositSidebarManager 
             currentStep={currentStep}
             stepStatusMap={stepStatusMap}
@@ -236,15 +241,22 @@ export function DepositLayout() {
                 variant="outline"
                 size={"md"}
                 onClick={handleBackClick}
-                disabled={currentStep === 0}
+                disabled={currentStep === 0 || isSubmitting} 
                 leftIcon={<ChevronLeftIcon />}
               >
                 Back
               </Button>
 
               {isLastStep ? (
-                <Button type="submit" size={"md"} variant={"secondary"}>
-                  Submit Deposition
+                <Button 
+                  type="submit" 
+                  size={"md"} 
+                  variant={"secondary"}
+                  // UI Feedback for loading state [!code ++]
+                  disabled={isSubmitting} 
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting ? "Submitting..." : "Submit Deposition"}
                 </Button>
               ) : (
                 <Button
@@ -252,6 +264,7 @@ export function DepositLayout() {
                   size={"md"}
                   onClick={handleNextClick}
                   rightIcon={<ChevronRightIcon />}
+                  disabled={isSubmitting} // Disable next if currently submitting (edge case)
                 >
                   Next Step
                 </Button>
