@@ -20,6 +20,14 @@ const BarChart: React.FC<BarChartProps> = ({
   horizontal = false,
   showLegend = series.length > 1,
 }) => {
+  if (!series.length || !categories.length) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-muted-foreground/40 px-4 text-sm text-muted-foreground">
+        No bar chart data available.
+      </div>
+    );
+  }
+
   const option: EChartsOption = {
     tooltip: { trigger: "axis" },
     legend: showLegend ? {} : undefined,

@@ -23,6 +23,14 @@ const Scatter2D: React.FC<Scatter2DProps> = ({
   colorBy = "category",
   // categories,
 }) => {
+  if (!points.length) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-muted-foreground/40 px-4 text-sm text-muted-foreground">
+        No scatter data available.
+      </div>
+    );
+  }
+
   const hasScalar =
     colorBy === "scalar" && points.some((p) => typeof p.c === "number");
   const option: EChartsOption = {

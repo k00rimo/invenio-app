@@ -22,6 +22,14 @@ const StackedAreaChart: React.FC<StackedAreaChartProps> = ({
   showLegend = true,
   stackId = "total",
 }) => {
+  if (!series.length) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-muted-foreground/40 px-4 text-sm text-muted-foreground">
+        No stacked data available.
+      </div>
+    );
+  }
+
   const option: EChartsOption = {
     tooltip: { trigger: "axis" },
     legend: showLegend ? {} : undefined,

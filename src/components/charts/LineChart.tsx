@@ -41,6 +41,14 @@ const LineChart: React.FC<LineChartProps> = ({
   zoomSliderBottom = 10,
   zoomSliderHeight = 26,
 }) => {
+  if (!series.length) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-muted-foreground/40 px-4 text-sm text-muted-foreground">
+        No timeseries data available.
+      </div>
+    );
+  }
+
   // Compute bottom padding so x-axis labels, axis name, and slider don't get clipped
   const baseBottom = 28; // room for tick labels
   const xNameExtra = xLabel ? 20 : 0; // additional space for axis name

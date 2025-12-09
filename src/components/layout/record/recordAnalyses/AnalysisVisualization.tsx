@@ -11,10 +11,6 @@ interface AnalysisVisualizationProps {
   replica?: number | string;
 }
 
-// A lightweight wrapper that:
-// - Detects whether the selected analysis is a base that returns options
-// - If options exist, renders a selector to pick a concrete variant and syncs it to the URL
-// - If it's already a concrete variant, fetches the data (ready for chart rendering)
 const AnalysisVisualization: FC<AnalysisVisualizationProps> = ({
   projectId,
   analysisName,
@@ -34,7 +30,7 @@ const AnalysisVisualization: FC<AnalysisVisualizationProps> = ({
   } = useProjectAnalysisData(projectId, analysisName, replica);
 
   return (
-    <div className="h-full flex flex-col gap-3">
+    <div className="h-full flex-1 flex flex-col gap-3">
       {dataPending && <LoadingComponent />}
       {dataError && <QueryErrorComponent error={error} />}
       {analysisData && (

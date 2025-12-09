@@ -59,6 +59,68 @@ export function getBaseAnalysisId(name: string): string {
   return m ? m[1] : name;
 }
 
+export type AnalysisGroup = {
+  baseId: string;
+  label: string;
+  variants: string[];
+  hasVariants: boolean;
+};
+
+/**
+ * Groups analyses so that base identifiers (without numeric suffix) act as
+ * primary entries and their suffixed variants are folded underneath.
+ */
+export function groupAnalysesByBase(analyses?: string[]): AnalysisGroup[] {
+  if (!analyses || analyses.length === 0) {
+    return [];
+  }
+
+  type InternalGroup = AnalysisGroup & { baseSeen: boolean };
+
+  const groups = new Map<string, InternalGroup>();
+  const order: string[] = [];
+
+  for (const slug of analyses) {
+    const baseId = getBaseAnalysisId(slug);
+    let entry = groups.get(baseId);
+
+    if (!entry) {
+      entry = {
+        baseId,
+        label: getAnalysisLabel(baseId),
+        variants: [],
+        hasVariants: false,
+        baseSeen: false,
+      };
+      groups.set(baseId, entry);
+      order.push(baseId);
+    }
+
+    if (slug === baseId) {
+      entry.baseSeen = true;
+    } else {
+      entry.hasVariants = true;
+      entry.variants.push(slug);
+    }
+  }
+
+  return order.map((baseId) => {
+    const entry = groups.get(baseId)!;
+
+    if (entry.variants.length === 0) {
+      // No suffixed variants means the base analysis itself holds the data
+      entry.variants.push(entry.baseId);
+    }
+
+    return {
+      baseId: entry.baseId,
+      label: entry.label,
+      variants: entry.variants,
+      hasVariants: entry.hasVariants,
+    } satisfies AnalysisGroup;
+  });
+}
+
 /** Simple Title Case for fallback labels: "rmsd-perres" -> "Rmsd Perres" */
 function toTitleCase(id: string): string {
   return id

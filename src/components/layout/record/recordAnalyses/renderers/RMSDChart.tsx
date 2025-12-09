@@ -1,13 +1,9 @@
 import type { FC } from "react";
-import { LineChart } from "@/components/charts";
-import type { StatisticalData } from "@/types/mdpositTypes";
+import { LineChart, formatStatValue, statToSeries } from "@/components/charts";
+import type { RMSDAnalysis } from "@/types/mdpositTypes";
 
 type RMSDChartProps = {
-  data: {
-    start?: number;
-    step?: number;
-    y?: { rmsd?: StatisticalData };
-  };
+  data: RMSDAnalysis;
   xLabel?: string;
   yLabel?: string;
 };
@@ -17,18 +13,20 @@ const RMSDChart: FC<RMSDChartProps> = ({
   xLabel = "Frame",
   yLabel = "RMSD (nm)",
 }) => {
-  const start: number = data.start ?? 0;
+  const start = 0;
   const step: number = data.step ?? 1;
-  const ys: StatisticalData | undefined = data.y?.rmsd;
-  if (!ys) return null;
+  const rmsdSeries = statToSeries(data.y?.rmsd, {
+    name: "RMSD",
+    start,
+    step,
+  });
+
+  if (!rmsdSeries) return null;
 
   const series = [
     {
-      name: "RMSD",
-      data: ys.data.map((y: number, i: number) => [
-        start + i * step,
-        y,
-      ]) as Array<[number, number]>,
+      name: rmsdSeries.name,
+      data: rmsdSeries.data,
     },
   ];
 
@@ -37,10 +35,10 @@ const RMSDChart: FC<RMSDChartProps> = ({
       <div className="text-xs text-muted-foreground flex justify-center gap-6">
         <div className="flex items-center gap-3">
           <span className="font-medium text-foreground/80">RMSD</span>
-          <span>Avg: {ys.average.toFixed(3)}</span>
-          <span>Std: {ys.stddev.toFixed(3)}</span>
-          <span>Min: {ys.min.toFixed(3)}</span>
-          <span>Max: {ys.max.toFixed(3)}</span>
+          <span>Avg: {formatStatValue(rmsdSeries.stats.average)}</span>
+          <span>Std: {formatStatValue(rmsdSeries.stats.stddev)}</span>
+          <span>Min: {formatStatValue(rmsdSeries.stats.min)}</span>
+          <span>Max: {formatStatValue(rmsdSeries.stats.max)}</span>
         </div>
       </div>
       <div className="flex-1 min-h-0">

@@ -121,7 +121,7 @@ export interface Interaction {
 // ============================================================================
 
 export interface ProjectMD {
-  accession: string;
+  accession: string; // like an ID for the project, e.g., "MD-A00001"
   published: boolean;
   metadata: ProjectMetadata;
   mds: string[]; // individual instances of experiments/simulations
@@ -133,6 +133,7 @@ export interface ProjectMD {
   mdcount?: number; // number of mds
   node?: string; // derived from accession/identifier - part before the comma
   local?: string; // derived from accession/identifier - part after the comma
+  posited?: boolean; // ???
   mdIndex?: number; // index of the md in the mds array (0 - mdcount-1)
   mdNumber: number; // unique number for the md within the project (1 - mdcount)
   refframe?: number; // no idea what this is
@@ -392,19 +393,31 @@ export interface RadiusOfGyrationAnalysis {
 }
 
 // RMSD pairwise analysis
-export interface RMSDPairwiseAnalysis {
-  start: number;
-  step: number;
+export interface RMSDPairwiseMatrix {
   name: string;
   rmsds: number[][];
 }
 
+export interface RMSDPairwiseAnalysis {
+  start: number;
+  step: number;
+  data: RMSDPairwiseMatrix[];
+}
+
 // RMSD per residue analysis
+export interface RMSDPerResidueSeries {
+  name: string;
+  rmsds: number[];
+}
+
 export interface RMSDPerResidueAnalysis {
-  data: {
-    name: string;
-    rmsds: number[];
-  }[];
+  step?: number;
+  data: RMSDPerResidueSeries[];
+}
+
+export interface RMSDPerResidueMatrixAnalysis {
+  step?: number;
+  rmsdpr: number[][];
 }
 
 // RMSDs analysis
@@ -462,9 +475,11 @@ export type Analysis =
   | InteractionData
   | PCAAnalysis
   | PocketsAnalysis
+  | RMSDAnalysis
   | RadiusOfGyrationAnalysis
   | RMSDPairwiseAnalysis
   | RMSDPerResidueAnalysis
+  | RMSDPerResidueMatrixAnalysis
   | RMSDsAnalysis
   | SolventAccessibleSurfaceAnalysis
   | TMScoresAnalysis;
@@ -475,7 +490,7 @@ export type Analysis =
 
 export interface AnalysisOption {
   name: string; // Human readable label e.g., "Overall" or domain name
-  analysis: AnalysisName; // Concrete analysis variant e.g., "rmsd-pairwise-00"
+  analysis: string; // Concrete analysis variant e.g., "rmsd-pairwise-00"
 }
 
 export type AnalysisOptionsResponse = AnalysisOption[];

@@ -1,16 +1,48 @@
 import RootLayout from "@/components/layout/RootLayout";
 import HomePage from "@/pages/HomePage";
 import RecordsListPage from "@/pages/RecordsListPage";
-import PlaygroundPage from "@/pages/PlaygroundPage";
 import RecordPage from "@/pages/RecordPage";
-
-import { createBrowserRouter, type RouteObject } from "react-router";
+import {
+  Navigate,
+  createBrowserRouter,
+  type LoaderFunctionArgs,
+  type RouteObject,
+} from "react-router";
 import DepositPage from "@/pages/DepositPage";
 import DepositSuccessPage from "@/pages/DepositSuccessPage";
 import CommunityPage from "@/pages/CommunitiyPage";
 import CommunityDetailPage from "@/pages/CommunityDetailPage";
 import CommunityFormPage from "@/pages/CommunityFormPage";
 import LoginPage from "@/pages/LoginPage";
+import { queryClient } from "@/lib/queryClient";
+import { getRecordById } from "@/api/projects";
+import RecordOverview from "@/components/layout/record/recordOverview/RecordOverview";
+import RecordExperiments from "@/components/layout/record/experiments/RecordExperiments";
+import ExperimentOverview from "@/components/layout/record/experiments/ExperimentOverview";
+import ExperimentTrajectory from "@/components/layout/record/experiments/ExperimentTrajectory";
+import ExperimentDefaultRedirect from "@/components/layout/record/experiments/ExperimentDefaultRedirect";
+import ExperimentReplicaLayout from "@/components/layout/record/experiments/ExperimentReplicaLayout";
+import ExperimentAnalysesRedirect from "@/components/layout/record/experiments/ExperimentAnalysesRedirect";
+import ExperimentAnalyses from "@/components/layout/record/experiments/ExperimentAnalyses";
+import ExperimentAnalysisDetail from "@/components/layout/record/experiments/ExperimentAnalysisDetail";
+// import ExperimentReplicaLayout from "@/components/layout/record/experiments/ExperimentReplicaLayout";
+// import RecordAnalyses from "@/components/layout/recordDetail/RecordAnalyses";
+// import RecordTrajectories from "@/components/layout/recordDetail/RecordTrajectories";
+
+export const recordLoader = async ({ params }: LoaderFunctionArgs) => {
+  const id = params?.id;
+
+  if (!id) {
+    throw new Response("Record ID is required", { status: 400 });
+  }
+
+  return queryClient.ensureQueryData({
+    queryKey: ["record", id],
+    queryFn: () => getRecordById(id),
+  });
+};
+
+export type RecordLoaderData = Awaited<ReturnType<typeof recordLoader>>;
 
 const routes: RouteObject[] = [
   {
@@ -59,43 +91,79 @@ const routes: RouteObject[] = [
         ],
       },
       {
-        path: "/playgorund",
-        Component: PlaygroundPage,
-      },
-      {
         path: "/records/:id",
-        Component: RecordPage,
+        loader: recordLoader,
+        handle: {
+          breadcrumb: (match: { params: { id: string } }) =>
+            `Record ${match.params.id}`,
+        },
+        element: <RecordPage />,
         children: [
           {
+            index: true,
+            element: <Navigate to="overview" replace />,
+          },
+          {
             path: "overview",
-            lazy: async () => {
-              const { default: RecordOverviewPage } = await import(
-                "@/pages/RecordOverviewPage"
-              );
-              return { Component: RecordOverviewPage };
+            handle: {
+              breadcrumb: "Overview",
             },
+            element: <RecordOverview />,
           },
           {
-            path: "analyses",
-            lazy: async () => {
-              const { default: RecordAnalysesPage } = await import(
-                "@/pages/RecordAnalysesPage"
-              );
-              return { Component: RecordAnalysesPage };
-            },
-          },
-          {
-            path: "trajectories",
-            lazy: async () => {
-              const { default: RecordTrajectoriesPage } = await import(
-                "@/pages/RecordTrajectoriesPage"
-              );
-              return { Component: RecordTrajectoriesPage };
-            },
-          },
-          {
-            path: "downloads",
-            element: <div>Downloads Page - TODO</div>,
+            path: "experiments",
+            handle: { breadcrumb: "Experiments" },
+            element: <RecordExperiments />,
+            children: [
+              {
+                index: true,
+                element: <ExperimentDefaultRedirect />,
+              },
+              {
+                path: ":replicaId",
+                handle: {
+                  breadcrumb: (match: { params: { replicaId: string } }) =>
+                    match.params.replicaId,
+                },
+                element: <ExperimentReplicaLayout />,
+                children: [
+                  {
+                    index: true,
+                    element: <Navigate to="overview" replace />,
+                  },
+                  {
+                    path: "overview",
+                    handle: { breadcrumb: "Overview" },
+                    element: <ExperimentOverview />,
+                  },
+                  {
+                    path: "trajectory",
+                    handle: { breadcrumb: "Trajectory Viewer" },
+                    element: <ExperimentTrajectory />,
+                  },
+                  {
+                    path: "analyses",
+                    handle: { breadcrumb: "Analyses" },
+                    element: <ExperimentAnalyses />,
+                    children: [
+                      {
+                        index: true,
+                        element: <ExperimentAnalysesRedirect />,
+                      },
+                      {
+                        path: ":analysisId",
+                        handle: {
+                          breadcrumb: (match: {
+                            params: { analysisId: string };
+                          }) => match.params.analysisId,
+                        },
+                        element: <ExperimentAnalysisDetail />,
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
           },
         ],
       },

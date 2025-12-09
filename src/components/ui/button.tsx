@@ -11,7 +11,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary font-button-normal text-white hover:bg-primary-dark",
+          "border border-primary bg-primary font-button-normal text-white hover:bg-primary-dark",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
@@ -66,9 +66,9 @@ function Button({
       {...props}
     >
       <>
-      {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
-      {children}
-      {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
+        {leftIcon && <span className="inline-flex shrink-0">{leftIcon}</span>}
+        {children}
+        {rightIcon && <span className="inline-flex shrink-0">{rightIcon}</span>}
       </>
     </Comp>
   );

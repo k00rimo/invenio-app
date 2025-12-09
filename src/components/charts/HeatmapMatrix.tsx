@@ -16,10 +16,22 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
   yLabels,
   title,
 }) => {
+  if (data.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-muted-foreground/40 px-4 text-sm text-muted-foreground">
+        No heatmap data available.
+      </div>
+    );
+  }
+
+  const values = data.map((d) => d[2]);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+
   const option: EChartsOption = {
     title: title ? { text: title } : undefined,
     tooltip: { position: "top" },
-    grid: { height: "80%", top: "10%" },
+    grid: { height: "85%", width: "90%", left: "5%", top: "5%" },
     xAxis: {
       type: "category",
       data: xLabels ?? [],
@@ -33,9 +45,11 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
       axisLabel: { show: !!yLabels },
     },
     visualMap: {
-      min: Math.min(...data.map((d) => d[2])),
-      max: Math.max(...data.map((d) => d[2])),
+      min: minValue,
+      max: maxValue,
       calculable: true,
+      // Avoid continuous re-render while dragging handles
+      realtime: false,
       orient: "horizontal",
       left: "center",
       bottom: 0,
@@ -48,7 +62,8 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
         emphasis: {
           itemStyle: { shadowBlur: 10, shadowColor: "rgba(0, 0, 0, 0.5)" },
         },
-        progressive: 5000,
+        progressive: 8000,
+        progressiveThreshold: 20000,
         animation: false,
       },
     ],

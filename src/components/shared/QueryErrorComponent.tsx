@@ -43,7 +43,7 @@ const QueryErrorComponent: React.FC<QueryErrorComponentProps> = ({
     <div
       role="alert"
       className={cn(
-        "rounded-lg border border-destructive/30 bg-destructive/10 text-destructive-foreground h-full m-16",
+        "rounded-lg border border-destructive/30 bg-destructive/10 text-destructive-foreground h-full",
         compact ? "p-3" : "p-4 sm:p-6",
         className
       )}
