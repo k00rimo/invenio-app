@@ -17,7 +17,8 @@ import {
   cutoffSchemeOptions,
   coulombTypeOptions,
   coulombModifierOptions,
-  freeEnergyCalculationOptions
+  freeEnergyCalculationOptions,
+  objectIdentifiersType
 } from "../deposition/formOptions"; 
 
 // --- Helper to extract values for Zod enums ---
@@ -64,7 +65,7 @@ export const fundingReferenceSchema = z.object({
 
 export const objectIdentifierSchema = z.object({
   identifier: z.string().min(1, { message: "Identifier is required." }),
-  identifierType: z.string().min(1, { message: "Identifier type is required." }),
+  identifierType: z.enum(getValues(objectIdentifiersType), { error: "Identifier type is required." })
 });
 
 // --- System Information Sub-schemas ---
@@ -144,6 +145,7 @@ export const administrativeSchema = z.object({
   publisher: z.string().optional().describe("Entity responsible for making the resource available"),
   license: z.enum(getValues(licenseOptions), { message: "Please select a valid license." }),  
   access: z.enum(getValues(accessOptions), { message: "Please select access rights." }),
+  communities: z.string().min(3, { error: "Provide the community slug"}),
   affiliations: z
     .array(z.string().min(3))
     .min(1, { message: "At least one affiliation is required." }),
@@ -152,7 +154,7 @@ export const administrativeSchema = z.object({
     .min(1, { message: "At least one tag is required" }),
   creators: z.array(creatorSchema).min(1, { message: "At least one creator is required." }),
   fundingReference: z.array(fundingReferenceSchema).optional(),
-  objectIdentifiers: z.array(objectIdentifierSchema).optional(),
+  objectIdentifiers: z.array(objectIdentifierSchema).min(1, { error: "Provide at least one indentifier." }),
 });
 
 // ==========================================

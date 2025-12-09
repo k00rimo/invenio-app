@@ -82,7 +82,7 @@ export function Administrative() {
             <FormControl>
               <Input
                 variant={"deposition"}
-                placeholder="Entity responsible for making the resource available"
+                placeholder=""
                 {...field}
               />
             </FormControl>
@@ -94,7 +94,7 @@ export function Administrative() {
         )}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         <FormField
           control={control}
           name="administrative.license"
@@ -154,6 +154,27 @@ export function Administrative() {
           )}
         />
       </div>
+      
+      <FormField
+        control={control}
+        name="administrative.communities"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel required>Community</FormLabel>
+            <FormControl>
+              <Input
+                variant={"deposition"}
+                placeholder="Entity responsible for making the resource available"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              Enter community slug (e.g., from mdrepo.eu/communities/<span className="font-medium">ceitec</span>, the slug is ceitec)
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <Separator />
       
@@ -180,10 +201,10 @@ export function Administrative() {
       <CreatorArray />
       <Separator />
 
-      <FundingArray />
+      <IdentifierArray />
       <Separator />
 
-      <IdentifierArray />
+      <FundingArray />
     </div>
   );
 }

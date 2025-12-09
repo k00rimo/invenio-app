@@ -3,6 +3,7 @@ export const administrativeDefaultValues = {
   description: "",
   license: "",
   access: "",
+  communities: "",
   affiliations: [],
   tags: [],
   creators: [], 

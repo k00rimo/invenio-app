@@ -316,7 +316,7 @@ export function SystemInformation() {
               name="systemInformation.simulationEngine.name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel required>Name</FormLabel>
                   <FormControl>
                     <Input variant="deposition" placeholder="e.g., GROMACS" {...field} />
                   </FormControl>
@@ -329,7 +329,7 @@ export function SystemInformation() {
               name="systemInformation.simulationEngine.version"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Version</FormLabel>
+                  <FormLabel required>Version</FormLabel>
                   <FormControl>
                     <Input variant="deposition" placeholder="e.g., 2023.1" {...field} />
                   </FormControl>

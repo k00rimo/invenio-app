@@ -66,6 +66,13 @@ export const accessOptions = [
 
 // --- Main Information Options ---
 
+export const objectIdentifiersType = [
+  { value: "DOI" },
+  { value: "ARK" },
+  { value: "PURL" },
+  { value: "URL" },
+]
+
 export const simulationTypeOptions = [
   { value: "free energy simulation", label: "Free Energy Simulation" },
   { value: "molecular dynamics", label: "Molecular Dynamics" },
