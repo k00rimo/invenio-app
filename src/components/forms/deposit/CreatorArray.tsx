@@ -124,7 +124,7 @@ export function CreatorArray() {
         name="administrative.creators"
         render={({ fieldState: { error } }) =>
           error ? (
-            <p className="text-sm font-medium text-destructive">{error.message}</p>
+            <p className="text-sm text-destructive">{error.message}</p>
           ) : <></>
         }
       />

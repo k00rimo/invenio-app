@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormContext, useFieldArray } from "react-hook-form";
+import { useFormContext, useFieldArray, Controller } from "react-hook-form";
 import type { DepositFormData } from "@/lib/validators/depositSchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,6 +124,16 @@ export function FundingArray() {
       >
         Add Funding Reference
       </Button>
+
+      <Controller
+        control={control}
+        name="administrative.fundingReference"
+        render={({ fieldState: { error } }) =>
+          error ? (
+            <p className="text-sm text-destructive">{error.message}</p>
+          ) : <></>
+        }
+      />
     </div>
   );
 }

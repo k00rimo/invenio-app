@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormContext, useFieldArray } from "react-hook-form";
+import { useFormContext, useFieldArray, Controller } from "react-hook-form";
 import type { DepositFormData } from "@/lib/validators/depositSchema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { PlusIcon, Trash2Icon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { objectIdentifiersType } from "@/lib/deposition/formOptions";
 
 export function IdentifierArray() {
   const { control } = useFormContext<DepositFormData>();
@@ -23,12 +25,11 @@ export function IdentifierArray() {
 
   return (
     <div className="space-y-4">
-      <FormLabel>
+      <FormLabel required>
         Object Identifiers
       </FormLabel>
       <FormDescription>
-        Add other persistent identifiers (optional) for this dataset (e.g., DOI,
-        Handle).
+        Add persistent identifiers (e.g., DOI).
       </FormDescription>
 
       <ul className="space-y-6">
@@ -62,13 +63,20 @@ export function IdentifierArray() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel required>Identifier Type</FormLabel>
-                    <FormControl>
-                      <Input
-                        variant="deposition"
-                        placeholder="e.g., DOI, Handle, ARK"
-                        {...field}
-                      />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger size={"md"}>
+                          <SelectValue placeholder="Select a type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {objectIdentifiersType.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.value}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -105,6 +113,16 @@ export function IdentifierArray() {
       >
         Add Identifier
       </Button>
+
+      <Controller
+        control={control}
+        name="administrative.objectIdentifiers"
+        render={({ fieldState: { error } }) =>
+          error ? (
+            <p className="text-sm text-destructive">{error.message}</p>
+          ) : <></>
+        }
+      />
     </div>
   );
 }

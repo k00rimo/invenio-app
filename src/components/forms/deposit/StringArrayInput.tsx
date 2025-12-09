@@ -106,7 +106,7 @@ export function StringArrayInput<T extends FieldValues>({
       </Button>
 
       {arrayError?.message && typeof arrayError.message === "string" && (
-        <p className="text-sm font-medium text-destructive">
+        <p className="text-sm text-destructive">
           {arrayError.message}
         </p>
       )}
