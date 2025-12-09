@@ -24,7 +24,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: mdrepo-frontend
-        image: cerit.io/xmudry/mdrepo-frontend:v0.3
+        image: cerit.io/xmudry/mdrepo-frontend:v0.4.0
         ports:
         - containerPort: 8080
         securityContext:
