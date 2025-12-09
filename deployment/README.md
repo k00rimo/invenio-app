@@ -2,10 +2,12 @@
 
 ## Build the app
 
-Replace the **username/organization name** and **version number**
+Replace the **username/organization name** and **version number** (Using semantic versioning: major.minor.patch)
 
 ```bash
-docker build -t cerit.io/<username|org-name>/mdrepo-frontend:v0.x .
+# e.g., docker build -t cerit.io/xmudry/mdrepo-frontend:v0.4.1 .
+# Note: '.' at the end specifies the path to the Dockerfile
+docker build -t cerit.io/<username|org-name>/mdrepo-frontend:vX.Y.Z .
 ```
 
 ## Push the app to the Harbor
@@ -21,7 +23,7 @@ docker login cerit.io
 
 - Push the image to the registry
 ```bash
-docker push cerit.io/<username|org-name>/mdrepo-frontend:v0.x
+docker push cerit.io/<username|org-name>/mdrepo-frontend:vX.Y.Z
 ```
 
 ## Apply deployment to the cluster
@@ -34,7 +36,7 @@ docker push cerit.io/<username|org-name>/mdrepo-frontend:v0.x
 ```yaml
 containers:
 - name: mdrepo-frontend
-image: cerit.io/xmudry/mdrepo-frontend:v0.3  # same version as in the Harbor
+image: cerit.io/xmudry/mdrepo-frontend:v0.4.1  # same version as in the Harbor
 ```
 
 - Apply the files
