@@ -256,7 +256,7 @@ export function DepositLayout() {
                   disabled={isSubmitting} 
                 >
                   {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {isSubmitting ? "Submitting..." : "Submit Deposition"}
+                  {isSubmitting ? "Submitting" : "Submit Deposition"}
                 </Button>
               ) : (
                 <Button
@@ -270,6 +270,14 @@ export function DepositLayout() {
                 </Button>
               )}
             </div>
+            {isSubmitting && (
+              <div className="flex gap-1 items-center text-destructive">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span>
+                  This might take a while, do not close the window...
+                </span>
+              </div>
+            )}
           </form>
         </main>
       </div>
