@@ -8,6 +8,7 @@ export interface HeatmapMatrixProps {
   xLabels?: string[];
   yLabels?: string[];
   title?: string;
+  enableFilter?: boolean;
 }
 
 const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
@@ -15,6 +16,7 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
   xLabels,
   yLabels,
   title,
+  enableFilter = true,
 }) => {
   if (data.length === 0) {
     return (
@@ -47,7 +49,7 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
     visualMap: {
       min: minValue,
       max: maxValue,
-      calculable: true,
+      calculable: enableFilter,
       // Avoid continuous re-render while dragging handles
       realtime: false,
       orient: "horizontal",
@@ -69,7 +71,11 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
     ],
   };
   return (
-    <EChartsBase option={option} style={{ width: "100%", height: "100%" }} />
+    <EChartsBase
+      option={option}
+      style={{ width: "100%", height: "100%" }}
+      opts={{ renderer: "canvas" }}
+    />
   );
 };
 

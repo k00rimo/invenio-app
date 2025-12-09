@@ -22,6 +22,15 @@ export interface StatSeriesResult {
 }
 
 const DEFAULT_TARGET_POINTS = 1200;
+const DEFAULT_HEATMAP_TARGET = 256;
+
+export interface DownsampledMatrix {
+  matrix: number[][];
+  rowStride: number;
+  colStride: number;
+  rowPositions: Array<{ start: number; end: number }>;
+  colPositions: Array<{ start: number; end: number }>;
+}
 
 function getStride(length: number, targetPoints: number): number {
   if (length <= targetPoints) return 1;
@@ -62,6 +71,69 @@ export function downsampleSeries(
     data.push([start + i * step, values[i]]);
   }
   return data;
+}
+
+export function downsampleMatrix(
+  matrix: number[][],
+  targetSize: number = DEFAULT_HEATMAP_TARGET
+): DownsampledMatrix {
+  if (matrix.length === 0) {
+    return {
+      matrix,
+      rowStride: 1,
+      colStride: 1,
+      rowPositions: [],
+      colPositions: [],
+    };
+  }
+
+  const rows = matrix.length;
+  const cols = matrix[0]?.length ?? 0;
+  const rowStride = getStride(rows, targetSize);
+  const colStride = getStride(cols, targetSize);
+
+  const rowPositions: Array<{ start: number; end: number }> = [];
+  for (let i = 0; i < rows; i += rowStride) {
+    rowPositions.push({
+      start: i,
+      end: Math.min(i + rowStride, rows) - 1,
+    });
+  }
+
+  const colPositions: Array<{ start: number; end: number }> = [];
+  for (let j = 0; j < cols; j += colStride) {
+    colPositions.push({
+      start: j,
+      end: Math.min(j + colStride, cols) - 1,
+    });
+  }
+
+  if (rowStride === 1 && colStride === 1) {
+    return { matrix, rowStride, colStride, rowPositions, colPositions };
+  }
+
+  const result: number[][] = [];
+  for (const { start: rowStart, end: rowEnd } of rowPositions) {
+    const newRow: number[] = [];
+    for (const { start: colStart, end: colEnd } of colPositions) {
+      let sum = 0;
+      let count = 0;
+      for (let r = rowStart; r <= rowEnd; r++) {
+        const sourceRow = matrix[r] ?? [];
+        for (let c = colStart; c <= colEnd; c++) {
+          const value = sourceRow[c];
+          if (typeof value === "number" && Number.isFinite(value)) {
+            sum += value;
+            count++;
+          }
+        }
+      }
+      newRow.push(count > 0 ? sum / count : 0);
+    }
+    result.push(newRow);
+  }
+
+  return { matrix: result, rowStride, colStride, rowPositions, colPositions };
 }
 
 export function statToSeries(

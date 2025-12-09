@@ -8,10 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { RMSDPairwiseAnalysis } from "@/types/mdpositTypes";
+import { downsampleMatrix } from "@/components/charts/utils";
 
 type RMSDPairwiseHeatmapProps = {
   data: RMSDPairwiseAnalysis;
 };
+
+const MAX_HEATMAP_RESOLUTION = 512;
 
 const RMSDPairwiseHeatmap: FC<RMSDPairwiseHeatmapProps> = ({ data }) => {
   const entries = data.data ?? [];
@@ -22,25 +25,53 @@ const RMSDPairwiseHeatmap: FC<RMSDPairwiseHeatmapProps> = ({ data }) => {
   const clampedIndex = Math.min(activeIndex, entries.length - 1);
   const activeEntry = entries[clampedIndex];
   const matrix: number[][] = activeEntry?.rmsds ?? [];
+  const {
+    matrix: sampledMatrix,
+    rowStride,
+    colStride,
+    rowPositions,
+    colPositions,
+  } = downsampleMatrix(matrix, MAX_HEATMAP_RESOLUTION);
   const triples: Array<[number, number, number]> = [];
-  for (let i = 0; i < matrix.length; i++) {
-    for (let j = 0; j < matrix[i].length; j++) {
-      triples.push([i, j, matrix[i][j] ?? 0]);
+  for (let i = 0; i < sampledMatrix.length; i++) {
+    for (let j = 0; j < sampledMatrix[i].length; j++) {
+      triples.push([i, j, sampledMatrix[i][j] ?? 0]);
     }
   }
-  const n = matrix.length;
+  const rowCount = sampledMatrix.length;
+  const colCount = sampledMatrix[0]?.length ?? 0;
   const start = data.start;
   const step = data.step;
-  const labels = Array.from({ length: n }, (_, i) =>
-    start != null && step != null ? String(start + i * step) : String(i)
-  );
 
-  if (n === 0) return null;
+  const formatFrameLabel = (index: number) =>
+    start != null && step != null
+      ? String(start + index * step)
+      : String(index);
+
+  const buildRangeLabel = ({
+    start: originStart,
+    end: originEnd,
+  }: {
+    start: number;
+    end: number;
+  }) => {
+    if (originStart === originEnd) {
+      return formatFrameLabel(originStart);
+    }
+    return `${formatFrameLabel(originStart)}-${formatFrameLabel(originEnd)}`;
+  };
+
+  const yLabels = rowPositions.map(buildRangeLabel);
+  const xLabels = colPositions.map(buildRangeLabel);
+
+  if (rowCount === 0 || colCount === 0) return null;
+
+  const isDownsampled = rowStride > 1 || colStride > 1;
 
   return (
     <div className="flex h-full flex-col gap-3">
-      {entries.length > 1 && (
-        <div className="flex justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {entries.length > 1 && (
           <Select
             value={String(clampedIndex)}
             onValueChange={(value) => {
@@ -61,16 +92,23 @@ const RMSDPairwiseHeatmap: FC<RMSDPairwiseHeatmapProps> = ({ data }) => {
               ))}
             </SelectContent>
           </Select>
-        </div>
-      )}
+        )}
+
+        {isDownsampled && (
+          <span className="text-xs text-muted-foreground">
+            Showing downsampled matrix (stride {rowStride} × {colStride})
+          </span>
+        )}
+      </div>
       <div className="min-h-0 flex-1">
         <HeatmapMatrix
           data={triples}
-          xLabels={labels}
-          yLabels={labels}
+          xLabels={xLabels}
+          yLabels={yLabels}
           title={`RMSD pairwise${
             activeEntry?.name ? ` · ${activeEntry.name}` : ""
           }`}
+          enableFilter={!isDownsampled}
         />
       </div>
     </div>

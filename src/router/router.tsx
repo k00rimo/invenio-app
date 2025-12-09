@@ -25,9 +25,6 @@ import ExperimentReplicaLayout from "@/components/layout/record/experiments/Expe
 import ExperimentAnalysesRedirect from "@/components/layout/record/experiments/ExperimentAnalysesRedirect";
 import ExperimentAnalyses from "@/components/layout/record/experiments/ExperimentAnalyses";
 import ExperimentAnalysisDetail from "@/components/layout/record/experiments/ExperimentAnalysisDetail";
-// import ExperimentReplicaLayout from "@/components/layout/record/experiments/ExperimentReplicaLayout";
-// import RecordAnalyses from "@/components/layout/recordDetail/RecordAnalyses";
-// import RecordTrajectories from "@/components/layout/recordDetail/RecordTrajectories";
 
 export const recordLoader = async ({ params }: LoaderFunctionArgs) => {
   const id = params?.id;
