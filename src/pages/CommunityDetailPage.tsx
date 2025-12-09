@@ -1,7 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router";
 import placeholderLogo from '@/assets/images/square-placeholder.png';
 import { Button } from "@/components/ui/button";
-import RecordCard from "@/components/layout/recordsListPage/RecordCard";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +70,7 @@ const CommunityDetailPage = () => {
   };
 
   return (
-    <div className="self-center flex min-h-svh max-w-5xl flex-col gap-6 mt-16">
+    <div className="self-center flex min-h-svh min-w-4xl max-w-5xl flex-col gap-6 mt-16">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-6">
           <img
@@ -137,9 +136,8 @@ const CommunityDetailPage = () => {
         </Link>
       </div>
       <div className="space-y-5 mb-8">
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"open"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"restricted"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
-        <RecordCard recordLink={"/records/MD-A00001/overview"} title={"Title of the record"} access={"closed"} authors={["Matej", "Adam", "Filip"]} tags={["Protein", "Structure", "Molecule"]} description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet, consectetur"} imageUrl={"random"} />
+        {/* TODO: Populate with the community records (just like in the RecordListPage) */}
+        <span className="text-gray-dark">Empty</span>
       </div>
     </div>
   );
