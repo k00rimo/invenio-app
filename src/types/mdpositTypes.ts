@@ -265,7 +265,13 @@ export interface InteractionData {
   name: string;
   agent_1: string;
   agent_2: string;
+  has_cg?: boolean;
+  version?: string;
   strong_bonds?: number[][];
+  atom_indices_1?: number[];
+  atom_indices_2?: number[];
+  interface_atom_indices_1?: number[];
+  interface_atom_indices_2?: number[];
   residue_indices_1?: number[];
   residue_indices_2?: number[];
   interface_indices_1?: number[];
@@ -286,6 +292,9 @@ export type AnalysisName =
   | "fluctuation"
   | "hbonds"
   | "interactions"
+  | "lipid-inter"
+  | "lipid-order"
+  | "thickness"
   | "pca"
   | "pockets"
   | "rgyr"
@@ -380,6 +389,100 @@ export interface PocketsAnalysis {
   }[];
 }
 
+// Membrane map analysis
+export interface MembraneMapAnalysis {
+  n_mems: number;
+  mems: Record<
+    string,
+    {
+      leaflets: {
+        bot: number[];
+        top: number[];
+      };
+      polar_atoms: {
+        bot: number[];
+        top: number[];
+      };
+    }
+  >;
+  no_mem_lipid: number[];
+}
+
+// Area per lipid analysis
+export interface AreaPerLipidAnalysis {
+  data: {
+    "lower leaflet": number[][];
+    "upper leaflet": number[][];
+    grid_x: number[];
+    grid_y: number[];
+    median: number;
+    std: number;
+  };
+}
+
+// Density profile analysis
+export interface DensityProfileComponent {
+  name: string;
+  selection: number[];
+  number: {
+    dens: number[];
+    stdv: number[];
+  };
+  mass: {
+    dens: number[];
+    stdv: number[];
+  };
+  charge: {
+    dens: number[];
+    stdv: number[];
+  };
+  electron: {
+    dens: number[];
+    stdv: number[];
+  };
+}
+
+export interface DensityProfileAnalysis {
+  data: {
+    comps: DensityProfileComponent[];
+    z: number[];
+  };
+}
+
+// Lipid interaction analysis
+export interface LipidInteractionAnalysis {
+  data: {
+    residue_indices: number[];
+    [lipidInchiKey: string]: number[];
+  };
+}
+
+// Lipid order analysis
+export interface LipidOrderSegment {
+  atoms: string[];
+  avg: number[];
+  std: number[];
+}
+
+export interface LipidOrderAnalysis {
+  data: Record<string, Record<string, LipidOrderSegment>>;
+}
+
+// Membrane thickness analysis
+export interface ThicknessAnalysis {
+  step?: number;
+  data: {
+    frame: number[];
+    mean_positive: number[];
+    mean_negative: number[];
+    std_positive: number[];
+    std_negative: number[];
+    thickness: number[];
+    std_thickness: number[];
+    midplane_z: number[];
+  };
+}
+
 // Radius of gyration analysis
 export interface RadiusOfGyrationAnalysis {
   start: number;
@@ -433,10 +536,10 @@ export interface RMSDsAnalysis {
 
 // Solvent accessible surface analysis
 export interface SolventAccessibleSurfaceAnalysis {
-  data: {
-    name: string;
-    saspf: number[];
-  }[];
+  step?: number;
+  saspf: Array<Array<number | null>>;
+  means?: number[];
+  stdvs?: number[];
 }
 
 // TM scores analysis
@@ -468,6 +571,12 @@ export interface ClustersAnalysis {
 }
 
 export type Analysis =
+  | MembraneMapAnalysis
+  | AreaPerLipidAnalysis
+  | DensityProfileAnalysis
+  | LipidInteractionAnalysis
+  | LipidOrderAnalysis
+  | ThicknessAnalysis
   | DistancePerResidueAnalysis
   | EnergiesAnalysis
   | FluctuationAnalysis
@@ -482,7 +591,8 @@ export type Analysis =
   | RMSDPerResidueMatrixAnalysis
   | RMSDsAnalysis
   | SolventAccessibleSurfaceAnalysis
-  | TMScoresAnalysis;
+  | TMScoresAnalysis
+  | ClustersAnalysis;
 
 // ============================================================================
 // Analysis Option Types
@@ -554,7 +664,6 @@ export interface FileQueryParams {
   [key: string]: string | boolean | undefined;
   parse?: boolean;
 }
-
 
 /**
  * Known values for community sort options.
@@ -677,7 +786,7 @@ export type CreateCommunityPayload = {
   };
   access: {
     visibility: "public" | "restricted";
-  }
+  };
 };
 
 export interface UpdateCommunityMetadataPayload {
@@ -691,26 +800,25 @@ export interface UpdateCommunityMetadataPayload {
 }
 
 export type LoginPayload = {
-  next: string
-  email: string
-  password: string
-}
+  next: string;
+  email: string;
+  password: string;
+};
 
 export type LoginResponse = {
   id: number;
   email: string;
   /** ISO 8601 Date string (e.g. "2025-09-24T16:19:14.618864") */
-  confirmed_at: string; 
+  confirmed_at: string;
   last_login_at: string;
 
   roles: string[];
-}
+};
 
 export type LogoutResponse = {
-  message: string
-}
+  message: string;
+};
 
 export interface RenameCommunityPayload {
-  slug: string
+  slug: string;
 }
-

@@ -108,7 +108,6 @@ const RMSDPairwiseHeatmap: FC<RMSDPairwiseHeatmapProps> = ({ data }) => {
           title={`RMSD pairwise${
             activeEntry?.name ? ` · ${activeEntry.name}` : ""
           }`}
-          enableFilter={!isDownsampled}
         />
       </div>
     </div>

@@ -32,7 +32,11 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
 
   const option: EChartsOption = {
     title: title ? { text: title } : undefined,
-    tooltip: { position: "top" },
+    tooltip: {
+      position: "top",
+      // Keep tooltip within chart bounds to avoid page overflow
+      confine: true,
+    },
     grid: { height: "85%", width: "90%", left: "5%", top: "5%" },
     xAxis: {
       type: "category",
@@ -52,6 +56,8 @@ const HeatmapMatrix: React.FC<HeatmapMatrixProps> = ({
       calculable: enableFilter,
       // Avoid continuous re-render while dragging handles
       realtime: false,
+      // Hovering the slider was triggering full heatmap highlights
+      hoverLink: false,
       orient: "horizontal",
       left: "center",
       bottom: 0,

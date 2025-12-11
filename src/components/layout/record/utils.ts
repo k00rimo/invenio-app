@@ -20,6 +20,12 @@ const BASE_ANALYSIS_LABELS: Record<string, string> = {
   interactions: "Interactions",
   pca: "PCA",
   pockets: "Pockets",
+  "mem-map": "Membrane Map",
+  apl: "Area per Lipid",
+  density: "Density Profile",
+  "lipid-inter": "Lipid Interactions",
+  "lipid-order": "Lipid Order",
+  thickness: "Membrane Thickness",
 
   // Matrices / pairwise
   "rmsd-pairwise": "RMSD Pairwise",

@@ -4,24 +4,63 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 ## Quick Reference Table
 
-| Analysis                  | Chart Component                             | 3D Viewer                | Priority |
-| ------------------------- | ------------------------------------------- | ------------------------ | -------- |
-| `rmsd`                    | LineChart (time series)                     | Optional                 | Low      |
-| `rmsd-pairwise`           | HeatmapMatrix (frame×frame)                 | Not needed               | N/A      |
-| `rmsd-pairwise-interface` | HeatmapMatrix                               | Recommended              | Medium   |
-| `rmsd-perres`             | BarChart or LineChart (per-residue)         | **Strongly recommended** | High     |
-| `rmsds`                   | LineChart (multi-series)                    | Optional                 | Low      |
-| `rgyr`                    | LineChart (multi-series: Rg, RgX/Y/Z)       | Not needed               | N/A      |
-| `fluctuation` (RMSF)      | BarChart or LineChart (per-residue)         | **Strongly recommended** | High     |
-| `dist-perres`             | BarChart/LineChart or HeatmapMatrix         | Recommended              | Medium   |
-| `hbonds`                  | LineChart (count) or HeatmapMatrix (pairs)  | Recommended              | Medium   |
-| `interactions`            | HeatmapMatrix (contact frequency)           | Recommended              | Medium   |
-| `energies`                | LineChart or StackedAreaChart               | Not needed               | N/A      |
-| `pca`                     | ScreePlot + Scatter2D                       | Optional (advanced)      | Low      |
-| `pockets`                 | LineChart (volume) or BarChart              | **Strongly recommended** | High     |
-| `sasa`                    | LineChart (total) or BarChart (per-residue) | Optional                 | Low      |
-| `tmscores`                | LineChart or HeatmapMatrix                  | Optional                 | Low      |
-| `clusters`                | BarChart (sizes) + HeatmapMatrix/Sankey     | **Strongly recommended** | High     |
+| Analysis                  | Chart Component                              | 3D Viewer                | Priority |
+| ------------------------- | -------------------------------------------- | ------------------------ | -------- |
+| `rmsd`                    | LineChart (time series)                      | Optional                 | Low      |
+| `rmsd-pairwise`           | HeatmapMatrix (frame×frame)                  | Not needed               | N/A      |
+| `rmsd-pairwise-interface` | HeatmapMatrix                                | Recommended              | Medium   |
+| `rmsd-perres`             | BarChart or LineChart (per-residue)          | **Strongly recommended** | High     |
+| `rmsds`                   | LineChart (multi-series)                     | Optional                 | Low      |
+| `rgyr`                    | LineChart (multi-series: Rg, RgX/Y/Z)        | Not needed               | N/A      |
+| `fluctuation` (RMSF)      | BarChart or LineChart (per-residue)          | **Strongly recommended** | High     |
+| `dist-perres`             | BarChart/LineChart or HeatmapMatrix          | Recommended              | Medium   |
+| `hbonds`                  | LineChart (count) or HeatmapMatrix (pairs)   | Recommended              | Medium   |
+| `interactions`            | HeatmapMatrix (contact frequency)            | Recommended              | Medium   |
+| `energies`                | LineChart or StackedAreaChart                | Not needed               | N/A      |
+| `pca`                     | ScreePlot + Scatter2D                        | Optional (advanced)      | Low      |
+| `pockets`                 | LineChart (volume) or BarChart               | **Strongly recommended** | High     |
+| `mem-map`                 | BarChart (leaflet composition) + LabeledList | **Strongly recommended** | High     |
+| `apl`                     | HeatmapMatrix (leaflet grid) + LineChart     | Recommended              | Medium   |
+| `density`                 | LineChart (multi-series z-profile)           | Not needed               | N/A      |
+| `lipid-inter`             | HeatmapMatrix (residue×lipid occupancy)      | **Strongly recommended** | High     |
+| `lipid-order`             | LineChart (segment order parameters)         | Recommended              | Medium   |
+| `thickness`               | LineChart (frame vs thickness) + Scatter2D   | Recommended              | Medium   |
+| `sasa`                    | LineChart (total) or BarChart (per-residue)  | Optional                 | Low      |
+| `tmscores`                | LineChart or HeatmapMatrix                   | Optional                 | Low      |
+| `clusters`                | BarChart (sizes) + HeatmapMatrix/Sankey      | **Strongly recommended** | High     |
+
+## Renderer Coverage Status
+
+**Source:** `src/components/layout/record/recordAnalyses/renderers/index.tsx`
+
+**Implemented renderers**
+
+- `rmsd` → `RMSDChart`
+- `rmsd-pairwise` → `RMSDPairwiseHeatmap`
+- `rmsds` → `RMSDsChart`
+- `rgyr` → `RgChart`
+- `fluctuation` → `FluctuationChart`
+- `rmsd-perres` → `RMSDPerResidueChart`
+- `tmscores` → `TMScoresChart`
+- `pca` → `PcaAnalysisPanel`
+- `pockets` → `PocketsAnalysisPanel`
+- `sasa` → `SasaAnalysisPanel`
+- `dist-perres` (and mean/std variants) → `DistancePerResiduePanel`
+- `hbonds` → `HydrogenBondsAnalysisPanel`
+- `interactions` → `InteractionsAnalysisPanel`
+
+**Pending / placeholder**
+
+- `rmsd-pairwise-interface`
+- `energies`
+- `mem-map`
+- `apl`
+- `density`
+- `lipid-inter`
+- `lipid-order`
+- `thickness`
+- `clusters`
+- `clusters`
 
 ---
 
@@ -168,10 +207,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `dist-perres`, `dist-perres-mean`, `dist-perres-stdv`
 
-**Chart:** Depends on data structure
+**Chart:** `DistancePerResiduePanel`
 
-- **Per-residue scalar:** `BarChart` or `LineChart` (x = residue)
-- **Pairwise residue–residue distances:** `HeatmapMatrix` (residue×residue)
+- Interaction selector + view toggle (mean vs std) drive the data set actually sent to the chart
+- Downsampled `HeatmapMatrix` (residue×residue) keeps rendering smooth even for 1000×1000 matrices; axes relabel aggregated bins
+- Sidebar calls out residue counts, min/avg/max distances, plus the top-N closest residue pairs so users can triage without reading the heatmap
 
 **3D Viewer:** Recommended
 
@@ -187,10 +227,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `hbonds`
 
-**Chart:**
+**Chart:** `HydrogenBondsAnalysisPanel`
 
-- **Count over time:** `LineChart` (x = frame, y = # bonds)
-- **Pair presence matrix:** `HeatmapMatrix` (donor×acceptor, showing occupancy)
+- Line chart shows bond counts per frame with numeric stats (avg/max) above the plot
+- Occupancy heatmap uses bonds on the y-axis, frame windows on the x-axis (binary 0/1) and auto-downsampling for very long trajectories
+- Sidebar summarizes per-interaction bond counts and lists the most persistent bonds with donor/acceptor indices
 
 **3D Viewer:** Recommended
 
@@ -207,10 +248,13 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `interactions`
 
-**Chart:**
+**Chart:** `InteractionsAnalysisPanel`
 
-- **Contact frequency matrix:** `HeatmapMatrix` (agent1×agent2)
-- **Future:** Network view for clusters of contacts
+- When residue-level indices are available we visualize the declared interface residues via a categorical `HeatmapMatrix`
+- Cell values encode which partner(s) are marked as interface (0=none, 1=agent2, 2=agent1, 3=both) so hotspots still pop out even without occupancy data
+- If the API only returns atom-level selections (current behavior for most systems) the panel falls back to summary cards and interface snapshots while explicitly stating that the heatmap is unavailable
+- Info card highlights total counts per agent plus a truncated list of interface residues/atoms for quick inspection
+- Future work can swap the categorical matrix for real contact frequencies once they are part of the payload
 
 **3D Viewer:** Recommended
 
@@ -277,6 +321,114 @@ This document maps each MDposit analysis type to the appropriate chart component
   - Color pockets by volume or druggability score
   - Toggle pocket visibility
   - Click pocket in chart → zoom to pocket in 3D
+
+---
+
+### Membrane Map
+
+**Analysis:** `mem-map`
+
+**Chart:** `BarChart` (per-membrane leaflet composition) + `LabeledList`
+
+- Aggregate counts of residues/lipids assigned to the top vs bottom leaflet for every membrane entry
+- Stack bars by leaflet (top/bottom) so total height conveys total lipids; tooltip should list residue indices for drill-down
+- Use a companion `LabeledList`/table to surface polar atom indices and the `no_mem_lipid` bucket so nothing silently disappears
+- Provide filters for individual membranes when `n_mems > 1`
+
+**3D Viewer:** **Strongly recommended**
+
+- Color lipids by leaflet (e.g., blue top, orange bottom) to instantly verify assignments
+- Highlight polar atoms with a separate representation (spheres) to validate interface definitions
+- Select the "unassigned" group to spotlight lipids that failed the leaflet heuristic
+
+---
+
+### Area Per Lipid
+
+**Analysis:** `apl`
+
+**Chart:** `HeatmapMatrix` (upper vs lower leaflet grids) + `LineChart` (global stats)
+
+- Render two heatmaps (tabs or side-by-side) that map `grid_x × grid_y` onto color-coded Angstrom^2 values for each leaflet
+- Use a synchronized color scale across both leaflets; expose `median`/`std` near the charts as a quick health check
+- Allow optional contour overlays or crosshair readouts for exact area values at a grid point
+- Complement the heatmaps with a `LineChart` showing median ± std over simulation time when multiple frames are available
+
+**3D Viewer:** Recommended
+
+- Project the heatmap onto the bilayer plane in 3D or color lipids by their instantaneous area to reveal hot/cold spots
+- Offer a toggle that snaps the camera to a top-down view for easier comparison with the 2D maps
+
+---
+
+### Density Profile
+
+**Analysis:** `density`
+
+**Chart:** `LineChart` (multi-series z-profile)
+
+- X-axis = `z` positions; Y-axis = density; generate one series per component and per density type (number, mass, charge, electron)
+- Provide toggles or checkboxes for the density flavor so users can compare, e.g., mass vs charge without clutter
+- Shade ±std around each curve or show twin series for mean/std when present
+- Support dual units (g/cm^3 vs arbitrary) via axis label metadata
+
+**3D Viewer:** Not needed
+
+- Optional nicety: highlight the spatial selection of the currently hovered component
+
+---
+
+### Lipid Interactions
+
+**Analysis:** `lipid-inter`
+
+**Chart:** `HeatmapMatrix` (residue×lipid occupancy)
+
+- Rows = residue indices from `residue_indices`; columns = lipid species (InChI keys) with cell color showing contact frequency
+- For large lipid sets, group by headgroup/chain type and expose a drill-down when a user clicks a column header
+- Allow sorting by max occupancy, cumulative counts, or residue number to surface dominant interactions quickly
+- Tooltips should show absolute counts plus normalized percentage over the trajectory window
+
+**3D Viewer:** **Strongly recommended**
+
+- Clicking a heatmap cell should highlight the residue and lipid simultaneously in 3D
+- Provide interface filters (lipid species, residue range) synchronized between the chart and 3D viewer to inspect hotspots
+
+---
+
+### Lipid Order
+
+**Analysis:** `lipid-order`
+
+**Chart:** `LineChart` (segment order parameters)
+
+- Each `LipidOrderSegment` becomes a series where x = atom/segment index along the tail, y = order parameter `avg`; use shaded band for `std`
+- Support small multiples by lipid name or leaflet to compare how order varies across chains
+- Add reference guides (e.g., |S| = 0.2) to highlight disordered regions
+- Allow switching the x-axis labeling between carbon indices and atom names for clarity
+
+**3D Viewer:** Recommended
+
+- Color lipid tails by the currently selected series to show ordered vs disordered regions in situ
+- Provide quick-select actions (clicking a series) that highlight matching lipids within the membrane patch
+
+---
+
+### Membrane Thickness
+
+**Analysis:** `thickness`
+
+**Chart:** `LineChart` (time series) + optional `Scatter2D` (midplane wandering)
+
+- Plot overall `thickness` vs frame with shaded ±`std_thickness`; overlay `mean_positive` and `mean_negative` to show leaflet separation
+- When `midplane_z` is provided, use `Scatter2D` or a secondary `LineChart` to illustrate midplane drift relative to the simulation box
+- Expose percentile bands/threshold annotations to flag excursions outside acceptable membrane thickness ranges
+- Provide brushing to inspect subsets of frames and export representative statistics for downstream QC
+
+**3D Viewer:** Recommended
+
+- Draw translucent surfaces for the positive/negative leaflets and animate through time for noticeable breathing modes
+- Clicking a frame in the chart should update the viewer, highlighting regions exceeding a user-defined deviation threshold
 
 ---
 
@@ -391,8 +543,13 @@ Location: `src/components/layout/recordDetail/recordAnalyses/renderers/`
 - EnergyChart.tsx
 - PCAScreePlot.tsx
 - PCAScatter.tsx
-- PocketsChart.tsx
 - ClustersChart.tsx
+- MembraneMapOverview.tsx
+- AreaPerLipidHeatmap.tsx
+- DensityProfileChart.tsx
+- LipidInteractionHeatmap.tsx
+- LipidOrderChart.tsx
+- MembraneThicknessChart.tsx
 
 ---
 
@@ -403,7 +560,7 @@ Location: `src/components/layout/recordDetail/recordAnalyses/renderers/`
 **High Priority (Must-Have):**
 
 - rmsd-perres, fluctuation → Color-by-residue metric
-- interactions, hbonds → Show contacts/bonds in 3D
+- mem-map, lipid-inter → Validate leaflet assignments and lipid-contact hotspots
 - pockets → Show pocket surfaces/locations
 - clusters → Show representative structures
 
@@ -411,13 +568,15 @@ Location: `src/components/layout/recordDetail/recordAnalyses/renderers/`
 
 - rmsd-pairwise-interface → Highlight interface residues
 - dist-perres → Show residue pairs and distances
-- hbonds → Draw H-bond networks
+- hbonds, interactions → Draw contact networks in structural context
+- apl, lipid-order, thickness → Compare leaflet shape/order and highlight deviations on the membrane
 
 **Low Priority (Nice-to-Have):**
 
 - pca → Play modes or show arrows along PCs
 - sasa (per-residue) → Color by SASA
 - tmscores/rmsds → Show alignment to reference
+- density → Optional link between profile curves and spatial selections
 
 **Not Needed:**
 

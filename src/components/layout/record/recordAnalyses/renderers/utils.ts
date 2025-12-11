@@ -1,7 +1,11 @@
 import type {
   Analysis,
+  DistancePerResidueAnalysis,
   FluctuationAnalysis,
+  HydrogenBondsAnalysis,
+  InteractionData,
   PCAAnalysis,
+  PocketsAnalysis,
   RadiusOfGyrationAnalysis,
   RMSDAnalysis,
   RMSDPairwiseAnalysis,
@@ -9,6 +13,7 @@ import type {
   RMSDPerResidueAnalysis,
   RMSDPerResidueMatrixAnalysis,
   RMSDsAnalysis,
+  SolventAccessibleSurfaceAnalysis,
   StatisticalData,
   TMScoresAnalysis,
 } from "@/types/mdpositTypes";
@@ -254,4 +259,262 @@ export const extractPcaAnalysis = (obj: Analysis): PCAAnalysis | undefined => {
   }
 
   return undefined;
+};
+
+export const isPocketsAnalysis = (obj: Analysis): obj is PocketsAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  return Array.isArray((obj as PocketsAnalysis).data);
+};
+
+export const isSasaAnalysis = (
+  obj: Analysis
+): obj is SolventAccessibleSurfaceAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const analysis = obj as SolventAccessibleSurfaceAnalysis;
+  return Array.isArray(analysis.saspf);
+};
+
+const isNumericMatrix = (matrix: unknown): matrix is number[][] =>
+  Array.isArray(matrix) &&
+  matrix.length > 0 &&
+  matrix.every(
+    (row) =>
+      Array.isArray(row) &&
+      row.length > 0 &&
+      row.every((value) => typeof value === "number" && Number.isFinite(value))
+  );
+
+export const isDistancePerResidueAnalysis = (
+  obj: Analysis
+): obj is DistancePerResidueAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const dataset = (obj as DistancePerResidueAnalysis).data;
+  if (!Array.isArray(dataset) || dataset.length === 0) return false;
+  return dataset.every(
+    (entry) =>
+      entry &&
+      typeof entry === "object" &&
+      typeof entry.name === "string" &&
+      isNumericMatrix(entry.means) &&
+      isNumericMatrix(entry.stdvs)
+  );
+};
+
+const normalizeNumericMatrix = (matrix: unknown): number[][] => {
+  if (!Array.isArray(matrix)) return [];
+  const sanitized: number[][] = [];
+  matrix.forEach((row) => {
+    if (!Array.isArray(row)) return;
+    const sanitizedRow = row.map((value) =>
+      typeof value === "number" && Number.isFinite(value) ? value : 0
+    );
+    sanitized.push(sanitizedRow);
+  });
+  return sanitized.length ? sanitized : [];
+};
+
+const normalizeDistanceEntry = (
+  entry: unknown,
+  index: number
+): DistancePerResidueAnalysis["data"][number] | undefined => {
+  if (!entry || typeof entry !== "object") return undefined;
+  const record = entry as { name?: unknown; means?: unknown; stdvs?: unknown };
+  const name =
+    typeof record.name === "string" && record.name.trim().length
+      ? record.name.trim()
+      : `Interaction ${index + 1}`;
+  const means = normalizeNumericMatrix(record.means);
+  const stdvs = normalizeNumericMatrix(record.stdvs);
+
+  if (!means.length && !stdvs.length) {
+    return undefined;
+  }
+
+  return {
+    name,
+    means,
+    stdvs,
+  };
+};
+
+const distancePerResidueCache = new WeakMap<
+  object,
+  DistancePerResidueAnalysis
+>();
+
+export const extractDistancePerResidueAnalysis = (
+  obj: Analysis
+): DistancePerResidueAnalysis | undefined => {
+  if (isDistancePerResidueAnalysis(obj)) {
+    return obj;
+  }
+
+  if (!obj || typeof obj !== "object") return undefined;
+
+  const cached = distancePerResidueCache.get(obj as object);
+  if (cached) return cached;
+
+  const payload = obj as { data?: unknown };
+  const sources: unknown[] = [];
+
+  if (Array.isArray(payload.data) && payload.data.length) {
+    sources.push(...payload.data);
+  } else {
+    sources.push(obj);
+  }
+
+  const normalized = sources
+    .map((entry, index) => normalizeDistanceEntry(entry, index))
+    .filter((entry): entry is DistancePerResidueAnalysis["data"][number] =>
+      Boolean(entry)
+    );
+
+  if (!normalized.length) return undefined;
+
+  const result: DistancePerResidueAnalysis = { data: normalized };
+  distancePerResidueCache.set(obj as object, result);
+  return result;
+};
+
+export const isHydrogenBondsAnalysis = (
+  obj: Analysis
+): obj is HydrogenBondsAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const dataset = (obj as HydrogenBondsAnalysis).data;
+  if (!Array.isArray(dataset) || dataset.length === 0) return false;
+  return dataset.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const payload = entry as HydrogenBondsAnalysis["data"][number];
+    return (
+      typeof payload.name === "string" &&
+      Array.isArray(payload.acceptors) &&
+      Array.isArray(payload.donors) &&
+      Array.isArray(payload.hydrogens) &&
+      Array.isArray(payload.hbonds) &&
+      payload.hbonds.every(
+        (row) =>
+          Array.isArray(row) && row.every((value) => typeof value === "boolean")
+      )
+    );
+  });
+};
+
+const normalizeNumberArray = (values: unknown): number[] =>
+  Array.isArray(values)
+    ? values.filter(
+        (value): value is number =>
+          typeof value === "number" && Number.isFinite(value)
+      )
+    : [];
+
+const toBooleanMatrix = (matrix: unknown): boolean[][] => {
+  if (!Array.isArray(matrix)) return [];
+  const normalized: boolean[][] = [];
+  matrix.forEach((row) => {
+    if (!Array.isArray(row)) return;
+    const normalizedRow = row.map((value) => {
+      if (typeof value === "boolean") return value;
+      if (typeof value === "number" && Number.isFinite(value)) {
+        return value !== 0;
+      }
+      return false;
+    });
+    normalized.push(normalizedRow);
+  });
+  return normalized.length ? normalized : [];
+};
+
+const normalizeLegacyHydrogenEntry = (
+  entry: unknown,
+  index: number
+): HydrogenBondsAnalysis["data"][number] | undefined => {
+  if (!entry || typeof entry !== "object") return undefined;
+  const record = entry as {
+    name?: unknown;
+    acceptors?: unknown;
+    donors?: unknown;
+    hydrogens?: unknown;
+    hbonds?: unknown;
+    hbonds_timed?: unknown;
+  };
+
+  const name =
+    typeof record.name === "string" && record.name.trim().length
+      ? record.name.trim()
+      : `Interaction ${index + 1}`;
+
+  const hbondsMatrix = (() => {
+    const directMatrix = toBooleanMatrix(record.hbonds);
+    if (directMatrix.length) return directMatrix;
+    return toBooleanMatrix(record.hbonds_timed);
+  })();
+
+  const acceptors = normalizeNumberArray(record.acceptors);
+  const donors = normalizeNumberArray(record.donors);
+  const hydrogens = normalizeNumberArray(record.hydrogens);
+
+  if (
+    !acceptors.length &&
+    !donors.length &&
+    !hydrogens.length &&
+    !hbondsMatrix.length
+  ) {
+    return undefined;
+  }
+
+  return {
+    name,
+    acceptors,
+    donors,
+    hydrogens,
+    hbonds: hbondsMatrix,
+  };
+};
+
+export const extractHydrogenBondsAnalysis = (
+  obj: Analysis
+): HydrogenBondsAnalysis | undefined => {
+  if (isHydrogenBondsAnalysis(obj)) {
+    return obj;
+  }
+
+  if (!obj || typeof obj !== "object") return undefined;
+
+  const payload = obj as { data?: unknown };
+  const sources: unknown[] = [];
+
+  if (Array.isArray(payload.data) && payload.data.length) {
+    sources.push(...payload.data);
+  } else {
+    sources.push(obj);
+  }
+
+  const normalized = sources
+    .map((entry, index) => normalizeLegacyHydrogenEntry(entry, index))
+    .filter((entry): entry is HydrogenBondsAnalysis["data"][number] =>
+      Boolean(entry)
+    );
+
+  if (!normalized.length) return undefined;
+
+  return { data: normalized };
+};
+
+const isInteractionEntry = (entry: unknown): entry is InteractionData => {
+  if (!entry || typeof entry !== "object") return false;
+  const payload = entry as InteractionData;
+  return (
+    typeof payload.name === "string" ||
+    typeof payload.agent_1 === "string" ||
+    typeof payload.agent_2 === "string"
+  );
+};
+
+export const isInteractionsAnalysis = (
+  obj: Analysis | InteractionData[]
+): obj is InteractionData | InteractionData[] => {
+  if (Array.isArray(obj)) {
+    return obj.every(isInteractionEntry);
+  }
+  return isInteractionEntry(obj);
 };
