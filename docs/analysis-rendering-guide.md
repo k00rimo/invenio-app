@@ -16,15 +16,15 @@ This document maps each MDposit analysis type to the appropriate chart component
 | `dist-perres`             | BarChart/LineChart or HeatmapMatrix          | Recommended              | Medium   |
 | `hbonds`                  | LineChart (count) or HeatmapMatrix (pairs)   | Recommended              | Medium   |
 | `interactions`            | HeatmapMatrix (contact frequency)            | Recommended              | Medium   |
-| `energies`                | LineChart or StackedAreaChart                | Not needed               | N/A      |
+| `energies`                | LineChart + StackedAreaChart                 | Not needed               | N/A      |
 | `pca`                     | ScreePlot + Scatter2D                        | Optional (advanced)      | Low      |
 | `pockets`                 | LineChart (volume) or BarChart               | **Strongly recommended** | High     |
 | `mem-map`                 | BarChart (leaflet composition) + LabeledList | **Strongly recommended** | High     |
 | `apl`                     | HeatmapMatrix (leaflet grid) + LineChart     | Recommended              | Medium   |
-| `density`                 | LineChart (multi-series z-profile)           | Not needed               | N/A      |
+| `density`                 | LineChart (metric toggle, z-profile)         | Not needed               | N/A      |
 | `lipid-inter`             | HeatmapMatrix (residue×lipid occupancy)      | **Strongly recommended** | High     |
-| `lipid-order`             | LineChart (segment order parameters)         | Recommended              | Medium   |
-| `thickness`               | LineChart (frame vs thickness) + Scatter2D   | Recommended              | Medium   |
+| `lipid-order`             | LineChart (avg ± std envelope)               | Recommended              | Medium   |
+| `thickness`               | LineChart (thickness + midplane drift)       | Recommended              | Medium   |
 | `sasa`                    | LineChart (total) or BarChart (per-residue)  | Optional                 | Low      |
 | `tmscores`                | LineChart or HeatmapMatrix                   | Optional                 | Low      |
 | `clusters`                | BarChart (sizes) + HeatmapMatrix/Sankey      | **Strongly recommended** | High     |
@@ -37,6 +37,7 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 - `rmsd` → `RMSDChart`
 - `rmsd-pairwise` → `RMSDPairwiseHeatmap`
+- `rmsd-pairwise-interface` → `RMSDPairwiseInterfacePanel`
 - `rmsds` → `RMSDsChart`
 - `rgyr` → `RgChart`
 - `fluctuation` → `FluctuationChart`
@@ -48,19 +49,18 @@ This document maps each MDposit analysis type to the appropriate chart component
 - `dist-perres` (and mean/std variants) → `DistancePerResiduePanel`
 - `hbonds` → `HydrogenBondsAnalysisPanel`
 - `interactions` → `InteractionsAnalysisPanel`
+- `mem-map` → `MembraneMapAnalysisPanel`
+- `apl` → `AreaPerLipidPanel`
+- `lipid-inter` → `LipidInteractionsPanel`
+- `thickness` → `ThicknessAnalysisPanel`
+- `density` → `DensityProfilePanel`
+- `lipid-order` → `LipidOrderPanel`
+- `energies` → `EnergiesPanel`
+- `clusters` → `ClustersPanel`
 
 **Pending / placeholder**
 
-- `rmsd-pairwise-interface`
-- `energies`
-- `mem-map`
-- `apl`
-- `density`
-- `lipid-inter`
-- `lipid-order`
-- `thickness`
-- `clusters`
-- `clusters`
+- _None_
 
 ---
 
@@ -112,7 +112,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `rmsd-pairwise-interface`
 
-**Chart:** `HeatmapMatrix` (same as rmsd-pairwise)
+**Chart:** `RMSDPairwiseInterfacePanel` (HeatmapMatrix + summary cards)
+
+- Summary cards report the active interface, captured frame count, frame step, and raw matrix resolution so reviewers know exactly which subset is on display.
+- A selector surfaces every available interaction while downsampling badges (stride + raw dims) explain how the heatmap was thinned for responsive rendering.
+- The `HeatmapMatrix` inherits the downsampled axis labels so even aggregated frame windows remain traceable to concrete frame indices.
 
 **3D Viewer:** Recommended
 
@@ -270,12 +274,12 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `energies`
 
-**Chart:**
+**Chart:** `EnergiesPanel` (LineChart + StackedArea)
 
-- **Components over time:** `LineChart` (multi-series)
-- **Component comparison:** Grouped `BarChart` or `StackedAreaChart`
-
-**Data:** Multiple energy terms (electrostatic, VdW, etc.) per agent
+- Per-interaction selector drives both the `LineChart` and the stacked area view; users can also toggle between `agent1`/`agent2` and choose overall, initial, or final energy stages
+- The multi-series line plot renders electrostatic, Van der Waals, and combined energies per residue using the trimmed label list for the X-axis so both agents stay aligned
+- A synchronized `StackedAreaChart` highlights how the three components accumulate along the sequence, making it easy to spot where VdW terms dominate
+- Summary cards surface residue counts, stage/agent context, and the peak absolute contribution while a side list reports the top-N residues sorted by |energy|
 
 **3D Viewer:** Not needed
 
@@ -365,12 +369,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `density`
 
-**Chart:** `LineChart` (multi-series z-profile)
+**Chart:** `DensityProfilePanel` (LineChart + stat grid)
 
-- X-axis = `z` positions; Y-axis = density; generate one series per component and per density type (number, mass, charge, electron)
-- Provide toggles or checkboxes for the density flavor so users can compare, e.g., mass vs charge without clutter
-- Shade ±std around each curve or show twin series for mean/std when present
-- Support dual units (g/cm^3 vs arbitrary) via axis label metadata
+- Metric selector switches between number, mass, charge, and electron density while a secondary select flips between raw densities and the reported standard deviations
+- The LineChart builds one series per component, sharing the native `z` samples across every metric so comparisons stay synchronized; dynamic axis labels update with the chosen units
+- Info cards summarize sample counts, component totals, and the active metric/mode, and the component list annotates selection sizes plus the peak magnitude (with units) for quick QC
 
 **3D Viewer:** Not needed
 
@@ -400,12 +403,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `lipid-order`
 
-**Chart:** `LineChart` (segment order parameters)
+**Chart:** `LipidOrderPanel` (LineChart + metadata chips)
 
-- Each `LipidOrderSegment` becomes a series where x = atom/segment index along the tail, y = order parameter `avg`; use shaded band for `std`
-- Support small multiples by lipid name or leaflet to compare how order varies across chains
-- Add reference guides (e.g., |S| = 0.2) to highlight disordered regions
-- Allow switching the x-axis labeling between carbon indices and atom names for clarity
+- Dual selectors pick the lipid species and the requested segment/leaflet, then the chart renders the average order parameter with two companion lines (`avg ± std`) so the breathing window is visible without extra shaders
+- Stat cards summarize chain length, average S, max S, and the mean standard deviation; the active segment label appears as a badge above the plot
+- Atom labels are rendered as badges (index + atom name) beneath the chart which makes it easy to map line-chart positions back to the physical carbon list
 
 **3D Viewer:** Recommended
 
@@ -418,12 +420,12 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `thickness`
 
-**Chart:** `LineChart` (time series) + optional `Scatter2D` (midplane wandering)
+**Chart:** `ThicknessAnalysisPanel` (dual `LineChart`s + stat cards)
 
-- Plot overall `thickness` vs frame with shaded ±`std_thickness`; overlay `mean_positive` and `mean_negative` to show leaflet separation
-- When `midplane_z` is provided, use `Scatter2D` or a secondary `LineChart` to illustrate midplane drift relative to the simulation box
-- Expose percentile bands/threshold annotations to flag excursions outside acceptable membrane thickness ranges
-- Provide brushing to inspect subsets of frames and export representative statistics for downstream QC
+- Primary time-series line plots mean `thickness` with a lightly shaded ±`std_thickness` band and overlays `mean_positive` / `mean_negative` so leaflet offsets are visible at a glance
+- Secondary `LineChart` tracks `midplane_z` drift whenever those samples exist; otherwise the panel surfaces a friendly placeholder explaining the missing data
+- Stat cards summarize overall averages, midplane drift range, and per-leaflet separation alongside the most recent frame’s readings
+- Threshold badges flag excursions beyond ±0.5 Å from the running median so reviewers can quickly triage unstable segments
 
 **3D Viewer:** Recommended
 
@@ -467,11 +469,11 @@ This document maps each MDposit analysis type to the appropriate chart component
 
 **Analysis:** `clusters`
 
-**Chart:**
+**Chart:** `ClustersPanel` (BarChart + HeatmapMatrix + transition list)
 
-- **Cluster sizes:** `BarChart` (x = cluster ID, y = # frames)
-- **Transitions:** `HeatmapMatrix` (cluster×cluster) or Sankey diagram (future)
-- **Within-cluster similarity:** `HeatmapMatrix` (frames within cluster)
+- Summary cards call out the number of clusters, total frames, cutoff, and clustering version so analysts can confirm parameters immediately.
+- The BarChart highlights up to the top 20 clusters by population, with a badge reminding users when additional clusters exist off-chart.
+- A transition `HeatmapMatrix` encodes origin→destination counts, paired with a tooltip that spells out the exact cluster flow and an auxiliary list of the six most frequent transitions.
 
 **3D Viewer:** **Strongly recommended** (High Priority)
 
@@ -549,7 +551,6 @@ Location: `src/components/layout/recordDetail/recordAnalyses/renderers/`
 - DensityProfileChart.tsx
 - LipidInteractionHeatmap.tsx
 - LipidOrderChart.tsx
-- MembraneThicknessChart.tsx
 
 ---
 

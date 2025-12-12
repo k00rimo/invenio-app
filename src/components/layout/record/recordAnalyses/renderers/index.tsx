@@ -1,6 +1,7 @@
 import type { FC, ReactElement } from "react";
 import { BarChart3 } from "lucide-react";
 import RMSDPairwiseHeatmap from "./RMSDPairwiseHeatmap";
+import RMSDPairwiseInterfacePanel from "./RMSDPairwiseInterfacePanel";
 import RMSDChart from "./RMSDChart";
 import RMSDsChart from "./RMSDsChart";
 import RgChart from "./RgChart";
@@ -13,8 +14,17 @@ import SasaAnalysisPanel from "./SasaAnalysisPanel";
 import DistancePerResiduePanel from "./DistancePerResiduePanel";
 import HydrogenBondsAnalysisPanel from "./HydrogenBondsAnalysisPanel";
 import InteractionsAnalysisPanel from "./InteractionsAnalysisPanel";
+import AreaPerLipidPanel from "./AreaPerLipidPanel";
+import LipidInteractionsPanel from "./LipidInteractionsPanel";
+import MembraneMapAnalysisPanel from "./MembraneMapAnalysisPanel";
+import ThicknessAnalysisPanel from "./ThicknessAnalysisPanel";
+import DensityProfilePanel from "./DensityProfilePanel";
+import LipidOrderPanel from "./LipidOrderPanel";
+import EnergiesPanel from "./EnergiesPanel";
+import ClustersPanel from "./ClustersPanel";
 import type { Analysis } from "@/types/mdpositTypes";
 import {
+  isAreaPerLipidAnalysis,
   extractDistancePerResidueAnalysis,
   extractPcaAnalysis,
   extractRmsdPairwiseAnalysis,
@@ -22,12 +32,19 @@ import {
   isFluctuationAnalysis,
   extractHydrogenBondsAnalysis,
   isInteractionsAnalysis,
+  isDensityProfileAnalysis,
+  extractEnergiesAnalysis,
+  isLipidInteractionAnalysis,
+  isLipidOrderAnalysis,
+  isMembraneMapAnalysis,
   isPocketsAnalysis,
   isRadiusOfGyrationAnalysis,
   isRmsdAnalysis,
   isRmsdsAnalysis,
   isSasaAnalysis,
   isTMScoresAnalysis,
+  isThicknessAnalysis,
+  isClustersAnalysis,
 } from "./utils";
 
 const ANALYSES = {
@@ -123,6 +140,15 @@ const analysisRenderers: Renderer[] = [
     return null;
   },
   (analysisName, data) => {
+    if (matchesAnalysisName(analysisName, ANALYSES.RMSD_PAIRWISE_INTERFACE)) {
+      const pairwiseData = extractRmsdPairwiseAnalysis(data);
+      if (pairwiseData) {
+        return <RMSDPairwiseInterfacePanel data={pairwiseData} />;
+      }
+    }
+    return null;
+  },
+  (analysisName, data) => {
     if (
       matchesAnalysisName(analysisName, ANALYSES.RMSD) &&
       isRmsdAnalysis(data)
@@ -195,11 +221,65 @@ const analysisRenderers: Renderer[] = [
     return null;
   },
   (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.APL) &&
+      isAreaPerLipidAnalysis(data)
+    ) {
+      return <AreaPerLipidPanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.MEM_MAP) &&
+      isMembraneMapAnalysis(data)
+    ) {
+      return <MembraneMapAnalysisPanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.LIPID_INTER) &&
+      isLipidInteractionAnalysis(data)
+    ) {
+      return <LipidInteractionsPanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.THICKNESS) &&
+      isThicknessAnalysis(data)
+    ) {
+      return <ThicknessAnalysisPanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.DENSITY) &&
+      isDensityProfileAnalysis(data)
+    ) {
+      return <DensityProfilePanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
     if (matchesAnalysisName(analysisName, DIST_PERRES_VARIANTS)) {
       const distPerResData = extractDistancePerResidueAnalysis(data);
       if (distPerResData) {
         return <DistancePerResiduePanel data={distPerResData} />;
       }
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.LIPID_ORDER) &&
+      isLipidOrderAnalysis(data)
+    ) {
+      return <LipidOrderPanel data={data} />;
     }
     return null;
   },
@@ -218,6 +298,24 @@ const analysisRenderers: Renderer[] = [
       isInteractionsAnalysis(data)
     ) {
       return <InteractionsAnalysisPanel data={data} />;
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (matchesAnalysisName(analysisName, ANALYSES.ENERGIES)) {
+      const energiesData = extractEnergiesAnalysis(data);
+      if (energiesData) {
+        return <EnergiesPanel data={energiesData} />;
+      }
+    }
+    return null;
+  },
+  (analysisName, data) => {
+    if (
+      matchesAnalysisName(analysisName, ANALYSES.CLUSTERS) &&
+      isClustersAnalysis(data)
+    ) {
+      return <ClustersPanel data={data} />;
     }
     return null;
   },

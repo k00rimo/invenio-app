@@ -1,9 +1,17 @@
 import type {
   Analysis,
+  AreaPerLipidAnalysis,
+  DensityProfileAnalysis,
   DistancePerResidueAnalysis,
+  EnergiesAnalysis,
+  EnergiesAgentData,
   FluctuationAnalysis,
+  ClustersAnalysis,
   HydrogenBondsAnalysis,
   InteractionData,
+  LipidInteractionAnalysis,
+  LipidOrderAnalysis,
+  MembraneMapAnalysis,
   PCAAnalysis,
   PocketsAnalysis,
   RadiusOfGyrationAnalysis,
@@ -15,6 +23,7 @@ import type {
   RMSDsAnalysis,
   SolventAccessibleSurfaceAnalysis,
   StatisticalData,
+  ThicknessAnalysis,
   TMScoresAnalysis,
 } from "@/types/mdpositTypes";
 
@@ -376,6 +385,18 @@ export const extractDistancePerResidueAnalysis = (
   return result;
 };
 
+export const isAreaPerLipidAnalysis = (
+  obj: Analysis
+): obj is AreaPerLipidAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as AreaPerLipidAnalysis;
+  const data = payload.data as AreaPerLipidAnalysis["data"] | undefined;
+  if (!data || typeof data !== "object") return false;
+  const upper = (data as { [key: string]: unknown })["upper leaflet"];
+  const lower = (data as { [key: string]: unknown })["lower leaflet"];
+  return isNumericMatrix(upper) || isNumericMatrix(lower);
+};
+
 export const isHydrogenBondsAnalysis = (
   obj: Analysis
 ): obj is HydrogenBondsAnalysis => {
@@ -498,6 +519,328 @@ export const extractHydrogenBondsAnalysis = (
   if (!normalized.length) return undefined;
 
   return { data: normalized };
+};
+
+export const isLipidInteractionAnalysis = (
+  obj: Analysis
+): obj is LipidInteractionAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as LipidInteractionAnalysis;
+  const dataset = payload.data;
+  if (!dataset || typeof dataset !== "object") return false;
+  const residues = (dataset as { residue_indices?: unknown }).residue_indices;
+  if (!Array.isArray(residues) || residues.length === 0) return false;
+  const lipidEntries = Object.entries(dataset).filter(
+    ([key]) => key !== "residue_indices"
+  );
+  if (!lipidEntries.length) return false;
+  return lipidEntries.some(
+    ([, values]) =>
+      Array.isArray(values) &&
+      values.some(
+        (value) => typeof value === "number" && Number.isFinite(value)
+      )
+  );
+};
+
+export const isThicknessAnalysis = (
+  obj: Analysis
+): obj is ThicknessAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as ThicknessAnalysis;
+  const dataset = payload.data;
+  if (!dataset || typeof dataset !== "object") return false;
+  const hasThicknessArray =
+    Array.isArray(dataset.thickness) && dataset.thickness.length > 0;
+  if (!hasThicknessArray) return false;
+  return dataset.thickness.some(
+    (value) => typeof value === "number" && Number.isFinite(value)
+  );
+};
+
+export const isDensityProfileAnalysis = (
+  obj: Analysis
+): obj is DensityProfileAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as DensityProfileAnalysis;
+  const dataset = payload.data;
+  if (!dataset || typeof dataset !== "object") return false;
+  const { comps, z } = dataset as {
+    comps?: unknown;
+    z?: unknown;
+  };
+  if (!Array.isArray(z) || !z.length) return false;
+  if (!Array.isArray(comps) || !comps.length) return false;
+  return comps.every((component) => {
+    if (!component || typeof component !== "object") return false;
+    const section = component as {
+      number?: { dens?: unknown };
+      mass?: { dens?: unknown };
+      charge?: { dens?: unknown };
+      electron?: { dens?: unknown };
+    };
+    return [
+      section.number,
+      section.mass,
+      section.charge,
+      section.electron,
+    ].some(
+      (metric) =>
+        metric &&
+        typeof metric === "object" &&
+        Array.isArray((metric as { dens?: unknown }).dens)
+    );
+  });
+};
+
+export const isLipidOrderAnalysis = (
+  obj: Analysis
+): obj is LipidOrderAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as LipidOrderAnalysis;
+  if (!payload.data || typeof payload.data !== "object") return false;
+  const lipidEntries = Object.values(payload.data);
+  if (!lipidEntries.length) return false;
+  return lipidEntries.some((segments) => {
+    if (!segments || typeof segments !== "object") return false;
+    return Object.values(segments).some((segment) => {
+      if (!segment || typeof segment !== "object") return false;
+      return Array.isArray((segment as { avg?: unknown }).avg);
+    });
+  });
+};
+
+export const isClustersAnalysis = (obj: Analysis): obj is ClustersAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as ClustersAnalysis;
+  if (!Array.isArray(payload.clusters) || !payload.clusters.length) {
+    return false;
+  }
+
+  const clustersValid = payload.clusters.every((cluster) => {
+    if (!cluster || typeof cluster !== "object") return false;
+    const frames = Array.isArray(cluster.frames) ? cluster.frames : [];
+    return (
+      typeof cluster.main === "number" &&
+      Number.isFinite(cluster.main) &&
+      frames.every(
+        (frame) => typeof frame === "number" && Number.isFinite(frame)
+      )
+    );
+  });
+
+  const transitions = Array.isArray(payload.transitions)
+    ? payload.transitions
+    : [];
+  const transitionsValid = transitions.every((transition) => {
+    if (!transition || typeof transition !== "object") return false;
+    return (
+      typeof transition.from === "number" &&
+      Number.isFinite(transition.from) &&
+      typeof transition.to === "number" &&
+      Number.isFinite(transition.to) &&
+      typeof transition.count === "number" &&
+      Number.isFinite(transition.count)
+    );
+  });
+
+  return (
+    typeof payload.name === "string" &&
+    typeof payload.cutoff === "number" &&
+    Number.isFinite(payload.cutoff) &&
+    typeof payload.step === "number" &&
+    Number.isFinite(payload.step) &&
+    typeof payload.version === "string" &&
+    clustersValid &&
+    transitionsValid
+  );
+};
+
+const sanitizeEnergyNumberArray = (values: unknown): number[] =>
+  Array.isArray(values)
+    ? values.filter(
+        (value): value is number =>
+          typeof value === "number" && Number.isFinite(value)
+      )
+    : [];
+
+const sanitizeEnergyLabelArray = (values: unknown): string[] =>
+  Array.isArray(values)
+    ? values
+        .map((value) => (typeof value === "string" ? value.trim() : ""))
+        .filter((value) => Boolean(value))
+    : [];
+
+const createEmptyEnergyAgent = (): EnergiesAgentData => ({
+  labels: [],
+  es: [],
+  ies: [],
+  fes: [],
+  vdw: [],
+  ivdw: [],
+  fvdw: [],
+  both: [],
+  iboth: [],
+  fboth: [],
+});
+
+const hasEnergySeries = (agent: EnergiesAgentData) =>
+  agent.es.length ||
+  agent.ies.length ||
+  agent.fes.length ||
+  agent.vdw.length ||
+  agent.ivdw.length ||
+  agent.fvdw.length ||
+  agent.both.length ||
+  agent.iboth.length ||
+  agent.fboth.length;
+
+const normalizeEnergyAgent = (agent: unknown): EnergiesAgentData => {
+  if (!agent || typeof agent !== "object") {
+    return createEmptyEnergyAgent();
+  }
+
+  const payload = agent as Partial<EnergiesAgentData>;
+  return {
+    labels: sanitizeEnergyLabelArray(payload.labels),
+    es: sanitizeEnergyNumberArray(payload.es),
+    ies: sanitizeEnergyNumberArray(payload.ies),
+    fes: sanitizeEnergyNumberArray(payload.fes),
+    vdw: sanitizeEnergyNumberArray(payload.vdw),
+    ivdw: sanitizeEnergyNumberArray(payload.ivdw),
+    fvdw: sanitizeEnergyNumberArray(payload.fvdw),
+    both: sanitizeEnergyNumberArray(payload.both),
+    iboth: sanitizeEnergyNumberArray(payload.iboth),
+    fboth: sanitizeEnergyNumberArray(payload.fboth),
+  };
+};
+
+const normalizeEnergiesEntry = (
+  entry: unknown,
+  index: number
+): EnergiesAnalysis["data"][number] | undefined => {
+  if (!entry || typeof entry !== "object") return undefined;
+  const record = entry as {
+    name?: unknown;
+    agent1?: unknown;
+    agent2?: unknown;
+  };
+
+  const agent1 = normalizeEnergyAgent(record.agent1);
+  const agent2 = normalizeEnergyAgent(record.agent2);
+
+  if (!hasEnergySeries(agent1) && !hasEnergySeries(agent2)) {
+    return undefined;
+  }
+
+  const name =
+    typeof record.name === "string" && record.name.trim().length
+      ? record.name.trim()
+      : `Interaction ${index + 1}`;
+
+  return {
+    name,
+    agent1,
+    agent2,
+  };
+};
+
+const hasEnergyAgentData = (agent: unknown): agent is EnergiesAgentData => {
+  if (!agent || typeof agent !== "object") return false;
+  const payload = agent as EnergiesAgentData;
+  const arrays: Array<unknown> = [
+    payload.labels,
+    payload.es,
+    payload.ies,
+    payload.fes,
+    payload.vdw,
+    payload.ivdw,
+    payload.fvdw,
+    payload.both,
+    payload.iboth,
+    payload.fboth,
+  ];
+  return arrays.every((value) => Array.isArray(value));
+};
+
+export const isEnergiesAnalysis = (obj: Analysis): obj is EnergiesAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as EnergiesAnalysis;
+  if (!Array.isArray(payload.data) || !payload.data.length) return false;
+  return payload.data.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const record = entry as { agent1?: unknown; agent2?: unknown };
+    return (
+      hasEnergyAgentData(record.agent1) && hasEnergyAgentData(record.agent2)
+    );
+  });
+};
+
+export const extractEnergiesAnalysis = (
+  obj: Analysis
+): EnergiesAnalysis | undefined => {
+  if (isEnergiesAnalysis(obj)) {
+    return obj;
+  }
+
+  if (!obj || typeof obj !== "object") return undefined;
+
+  const payload = obj as { data?: unknown };
+  const sources: unknown[] = [];
+
+  if (Array.isArray(payload.data) && payload.data.length) {
+    sources.push(...payload.data);
+  } else if (Array.isArray(obj)) {
+    sources.push(...obj);
+  } else {
+    sources.push(obj);
+  }
+
+  const normalized = sources
+    .map((entry, index) => normalizeEnergiesEntry(entry, index))
+    .filter((entry): entry is EnergiesAnalysis["data"][number] =>
+      Boolean(entry)
+    );
+
+  if (!normalized.length) return undefined;
+
+  return { data: normalized };
+};
+
+export const isMembraneMapAnalysis = (
+  obj: Analysis
+): obj is MembraneMapAnalysis => {
+  if (!obj || typeof obj !== "object") return false;
+  const payload = obj as MembraneMapAnalysis;
+  const mems = payload.mems;
+  const entries = mems && typeof mems === "object" ? Object.values(mems) : [];
+  const hasMembraneEntries = entries.length > 0;
+  const hasUnassigned = Array.isArray(payload.no_mem_lipid);
+  if (!hasMembraneEntries && !hasUnassigned) {
+    return false;
+  }
+  if (!hasMembraneEntries) {
+    return true;
+  }
+  return entries.every((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    const leaflets = (entry as { leaflets?: unknown }).leaflets as
+      | { top?: unknown; bot?: unknown }
+      | undefined;
+    const polar = (entry as { polar_atoms?: unknown }).polar_atoms as
+      | { top?: unknown; bot?: unknown }
+      | undefined;
+    return (
+      !!leaflets &&
+      typeof leaflets === "object" &&
+      Array.isArray(leaflets.top) &&
+      Array.isArray(leaflets.bot) &&
+      !!polar &&
+      typeof polar === "object" &&
+      Array.isArray(polar.top) &&
+      Array.isArray(polar.bot)
+    );
+  });
 };
 
 const isInteractionEntry = (entry: unknown): entry is InteractionData => {
