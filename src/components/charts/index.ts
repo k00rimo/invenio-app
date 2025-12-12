@@ -5,4 +5,5 @@ export { default as BarChart } from "./BarChart";
 export { default as Scatter2D } from "./Scatter2D";
 export { default as HeatmapMatrix } from "./HeatmapMatrix";
 export { default as ScreePlot } from "./ScreePlot";
+export type { TooltipContext } from "./HeatmapMatrix";
 export * from "./utils";

@@ -4,8 +4,11 @@ import type {
   Analysis,
   AnalysisOptionsResponse,
   ProjectMD,
+  ProjectReferencesResponse,
   ProjectsQueryParams,
   ProjectsResponse,
+  Topology,
+  TrajectoryFormat,
 } from "@/types/mdpositTypes";
 
 export const getProjects = async (
@@ -16,7 +19,7 @@ export const getProjects = async (
     // just pass queryParams into the apiClient.get call
     const params = {
       sort: '{"_id":-1}',
-      ...queryParams
+      ...queryParams,
     };
     const response: AxiosResponse<ProjectsResponse> = await apiClient.get(
       "/projects",
@@ -138,4 +141,100 @@ export const getProjectAnalysisOptions = async (
     );
     throw error;
   }
+};
+
+export interface StructureRequestOptions {
+  selection?: string;
+  method?: "get" | "post";
+  responseType?: "arraybuffer" | "text";
+}
+
+export const getProjectStructure = async (
+  projectId: string,
+  options?: StructureRequestOptions
+): Promise<ArrayBuffer | string> => {
+  const instanceId = encodeURIComponent(projectId);
+  const url = `projects/${instanceId}/structure`;
+  const params = options?.selection
+    ? { selection: options.selection }
+    : undefined;
+  const responseType = options?.responseType ?? "arraybuffer";
+
+  if (options?.method === "post") {
+    const response: AxiosResponse<ArrayBuffer | string> = await apiClient.post(
+      url,
+      undefined,
+      { params, responseType }
+    );
+    return response.data;
+  }
+
+  const response: AxiosResponse<ArrayBuffer | string> = await apiClient.get(
+    url,
+    {
+      params,
+      responseType,
+    }
+  );
+  return response.data;
+};
+
+export interface TrajectoryRequestOptions {
+  format?: TrajectoryFormat;
+  frames?: string;
+  selection?: string;
+  method?: "get" | "post";
+}
+
+export const getProjectTrajectory = async (
+  projectId: string,
+  options?: TrajectoryRequestOptions
+): Promise<ArrayBuffer> => {
+  const instanceId = encodeURIComponent(projectId);
+  const url = `projects/${instanceId}/trajectory`;
+  const params: Record<string, string> = {};
+
+  if (options?.format) {
+    params.format = options.format;
+  }
+  if (options?.frames) {
+    params.frames = options.frames;
+  }
+  if (options?.selection) {
+    params.selection = options.selection;
+  }
+
+  const config = {
+    params: Object.keys(params).length ? params : undefined,
+    responseType: "arraybuffer" as const,
+  };
+
+  if (options?.method === "post") {
+    const response: AxiosResponse<ArrayBuffer> = await apiClient.post(
+      url,
+      undefined,
+      config
+    );
+    return response.data;
+  }
+
+  const response: AxiosResponse<ArrayBuffer> = await apiClient.get(url, config);
+  return response.data;
+};
+
+export const getProjectTopology = async (
+  projectId: string
+): Promise<Topology> => {
+  const response: AxiosResponse<Topology> = await apiClient.get(
+    `projects/${encodeURIComponent(projectId)}/topology`
+  );
+  return response.data;
+};
+
+export const getProjectReferences = async (
+  projectId: string
+): Promise<ProjectReferencesResponse> => {
+  const response: AxiosResponse<ProjectReferencesResponse> =
+    await apiClient.get(`projects/${encodeURIComponent(projectId)}/references`);
+  return response.data;
 };

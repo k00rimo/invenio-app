@@ -1,5 +1,5 @@
 import { type FC, useEffect, useMemo, useState, useCallback } from "react";
-import { HeatmapMatrix } from "@/components/charts";
+import { HeatmapMatrix, type TooltipContext } from "@/components/charts";
 import LabeledList from "@/components/shared/LabeledList";
 import {
   Select,
@@ -127,7 +127,7 @@ const LipidInteractionsPanel: FC<{ data: LipidInteractionAnalysis }> = ({
   );
 
   const tooltipFormatter = useCallback(
-    ({ value, xIndex, yIndex, xLabel, yLabel }) => {
+    ({ value, xIndex, yIndex, xLabel, yLabel }: TooltipContext) => {
       const total = columnTotals[xIndex] ?? 0;
       const percent = total ? ((value / total) * 100).toFixed(1) : "0.0";
       const residueLabel = yLabel ?? `Residue ${yIndex + 1}`;

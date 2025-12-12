@@ -146,7 +146,7 @@ export function statToSeries(
     ? downsampleSeries(stat.data, { start, step, targetPoints })
     : buildTimeSeries(stat.data, { start, step });
 
-  const { data: _ignored, ...stats } = stat;
+  const { data: _, ...stats } = stat;
 
   return {
     name,

@@ -59,6 +59,7 @@ const ANALYSES = {
   LIPID_INTER: "lipid-inter",
   LIPID_ORDER: "lipid-order",
   RMSD_PAIRWISE: "rmsd-pairwise",
+  RMSD_PAIRWISE_INTERFACE: "rmsd-pairwise-interface",
   PCA: "pca",
   POCKETS: "pockets",
   RMSD_PERRES: "rmsd-perres",

@@ -257,6 +257,14 @@ export interface PdbReference {
 
 export type Reference = ProteinReference | LigandReference | PdbReference;
 
+export interface ProjectReferencesResponse {
+  proteins?: ProteinReference[];
+  ligands?: LigandReference[];
+  pdbs?: PdbReference[];
+}
+
+export type TrajectoryFormat = "bin" | "mdcrd" | "xtc" | "trr";
+
 // ============================================================================
 // Interactions Types
 // ============================================================================

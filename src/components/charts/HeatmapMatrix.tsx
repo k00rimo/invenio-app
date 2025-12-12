@@ -2,7 +2,7 @@ import React from "react";
 import EChartsBase from "./EChartsBase";
 import type { EChartsOption } from "./echarts-setup";
 
-type TooltipContext = {
+export type TooltipContext = {
   params: unknown;
   value: number;
   xIndex: number;
