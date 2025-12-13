@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { extractDoiFromCitation } from "@/lib/citation";
 
-import MolStarPlaceholder from "./MolStarPlaceholder";
+import MolStarViewer from "./MolStarViewer";
 import type { ProjectMD } from "@/types/mdpositTypes";
 import { formatISODateString } from "@/lib/formatters";
 
@@ -41,7 +41,10 @@ const RecordSidebar = ({ record }: { record: ProjectMD }) => {
       {isExpanded && (
         <SidebarContent className="pt-4">
           <SidebarGroup>
-            <MolStarPlaceholder height={300} />
+            <MolStarViewer
+              projectId={record.accession ?? record.identifier}
+              height={300}
+            />
           </SidebarGroup>
           <SidebarGroup>
             <SidebarGroupLabel>Published</SidebarGroupLabel>

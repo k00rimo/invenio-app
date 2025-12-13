@@ -45,7 +45,7 @@ const RecordExperimentsSidebar = ({
   }, [mds, searchTerm]);
 
   return (
-    <aside className="flex flex-col gap-6 w-96 bg-primary-light p-4 rounded-xl">
+    <aside className="flex flex-col gap-6 w-[20%] min-w-64 max-w-96 bg-primary-light p-4 rounded-xl">
       <span className="text-2xl font-semibold">Experiments</span>
       <Input
         className="border-primary bg-white"
